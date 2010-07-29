@@ -1,0 +1,102 @@
+#!/usr/bin/env ruby
+
+def get_data()
+    '700200040400030907015040000000700000057000210000009000000080360503070002020006004'
+end
+
+class Cell
+
+    attr_reader :board, :row, :col, :possibles
+    
+    def initialize(board, row, col)
+        @board = board
+        @row = row
+        @col = col
+        @possibles = '123456789'
+    end
+    
+    def box()
+        (@row / 3) * 3 + (@col / 3)
+    end
+    
+    def has?(possible)
+        not @possibles.index(possible).nil?
+    end
+    
+    def solve(value)
+        @possibles = value
+    end
+    
+    def remove(value)
+        found = false
+        if @possibles.length > 1
+            found = @possibles.sub!(value, '')
+            if @possibles.length == 1
+                puts "#{self} solved"
+                @board.solve(self, @possibles)
+            end
+        end
+        found
+    end
+    
+    def to_s()
+        "Cell #{@row}:#{@col}=#{@possibles}"
+    end
+    
+end 
+
+class Board
+
+    def initialize(data)
+        puts "=== Populating board ==="
+        @cells = []
+        (0..8).each { |row| (0..8).each { |col| @cells << Cell.new(self, row, col) }}
+        i = 0
+        (0..8).each { |row| (0..8).each { |col| 
+            value = data[i,1]
+            solve(cell(row, col), value) if value != '0' 
+            i += 1
+        }}
+            
+    end
+    
+    def to_s()
+        s = []
+        s << '=' * 50
+        (0..8).each do |row|
+            r = []
+            cells_by_row(row).each { |cell| r << cell.possibles }
+            s << "[#{r.join(",")}]"
+        end
+        s << '=' * 50
+        s.join("\n")
+    end
+    
+    def solve(solved_cell, value)
+        solved_cell.solve(value)
+        @cells.each { |cell| cell.remove(value) if cell.row == solved_cell.row or cell.col == solved_cell.col or cell.box == solved_cell.box }
+    end
+    
+    def cell(row, col)
+        @cells[row * 9 + col]
+    end
+    
+    def cells_by_row(row)
+        @cells.select { |cell| cell.row == row }
+    end
+
+    def cells_by_col(col)
+        @cells.select { |cell| cell.col == col }
+    end
+
+    def cells_by_box(box)
+        @cells.select { |cell| cell.box == box }
+    end
+
+end
+
+board = Board.new(get_data)
+puts board.to_s
+puts board.cells_by_box(2)
+
+
