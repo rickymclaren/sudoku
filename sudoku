@@ -275,6 +275,24 @@ class Board
             end
         end
         
+        (0..8).each do |col|
+            "123456789".scan(/./).each do |possible|
+                cells = cells_by_col(col).select { |cell| cell.has? possible }
+                boxes = cells.map { |cell| cell.box}.uniq
+                if boxes.length == 1
+                    cells_by_box(boxes[0]).each do |cell| 
+                        if not cells.include? cell and cell.remove(possible) 
+                            found = true
+                        end
+                    end
+                end
+                if found
+                    puts "Box Line reduction of #{possible} on col #{row}"
+                    return true
+                end
+            end
+        end
+        
         found        
     end
         
