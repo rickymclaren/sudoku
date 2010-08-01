@@ -252,6 +252,32 @@ class Board
         found        
     end
         
+    def box_line_reduction
+        puts "=== Box-Line Reduction ==="
+        found = false
+        row = col = 0
+        
+        (0..8).each do |row|
+            "123456789".scan(/./).each do |possible|
+                cells = cells_by_row(row).select { |cell| cell.has? possible }
+                boxes = cells.map { |cell| cell.box}.uniq
+                if boxes.length == 1
+                    cells_by_box(boxes[0]).each do |cell| 
+                        if not cells.include? cell and cell.remove(possible) 
+                            found = true
+                        end
+                    end
+                end
+                if found
+                    puts "Box Line reduction of #{possible} on row #{row}"
+                    return true
+                end
+            end
+        end
+        
+        found        
+    end
+        
 end
 
 board = Board.new(get_data)
@@ -260,6 +286,7 @@ while running
     if board.singles
     elsif board.naked_pairs
     elsif board.pointing_pairs
+    elsif board.box_line_reduction
     else 
         running = false
     end
