@@ -226,17 +226,17 @@ class Board
         (0..8).each do |box|
             "123456789".scan(/./).each do |possible|
                 pairs = cells_by_box(box).select { |cell| cell.has? possible}
-                if pairs.length == 2
-                    if pairs[0].row == pairs[1].row
+                if pairs.length == 2 or pairs.length == 3
+                    if pairs[0].row == pairs[1].row and pairs[0].row == pairs[-1].row
                         cells_by_row(pairs[0].row).each do |cell| 
-                            if cell != pairs[0] and cell != pairs[1] and cell.remove(possible) 
+                            if not pairs.include? cell and cell.remove(possible) 
                                 found = true
                             end
                         end
                     end
-                    if pairs[0].col == pairs[1].col
+                    if pairs[0].col == pairs[1].col and pairs[0].col == pairs[-1].col
                         cells_by_col(pairs[0].col).each do |cell| 
-                            if cell != pairs[0] and cell != pairs[1] and cell.remove(possible) 
+                            if not pairs.include? cell and cell.remove(possible) 
                                 found = true
                             end
                         end
