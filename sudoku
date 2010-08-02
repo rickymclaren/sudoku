@@ -31,6 +31,7 @@ class Cell
         found = false
         if @possibles.length > 1
             found = @possibles.sub!(value, '')
+            puts "removed #{value} from #{self}" if found
             if @possibles.length == 1
                 puts "#{self} solved"
                 @board.solve(self, @possibles)
@@ -241,10 +242,10 @@ class Board
                             end
                         end
                     end
-                end
-                if found
-                    puts "Pointing Pair #{possible} on box #{box}"
-                    return true
+                    if found
+                        puts "Pointing Pair #{possible} on box #{box}"
+                        return true
+                    end
                 end
             end
         end
@@ -296,6 +297,142 @@ class Board
         found        
     end
         
+    def x_wing
+        puts "=== X-Wing ==="
+        found = false
+        row = col = 0
+
+        "123456789".scan(/./).each do |possible|
+            rows = []        
+            (0..8).each do |row|
+                cols = [possible, row] << cells_by_row(row).select { |cell| cell.has? possible }.map { |cell| cell.col }
+                cols.flatten!
+                rows << cols if cols.length == 4
+            end
+            
+            while rows.length > 1
+                first = rows.pop
+                rows.each do |second|
+                    if first[2] == second[2] and first[3] == second[3]
+                        x_rows = [first[1], second[1]]
+                        [first[2], first[3]].each do |col|
+                            cells_by_col(col).each do |cell|
+                                if not x_rows.include? cell.row and cell.remove(possible) 
+                                    found = true
+                                end
+                            end
+                        end
+                        if found
+                            puts "X-Wing for #{possible} in rows #{x_rows}"
+                            return true
+                        end
+                    end
+                end
+            end
+            
+        end
+        
+        "123456789".scan(/./).each do |possible|
+            cols = []        
+            (0..8).each do |col|
+                rows = [possible, col] << cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
+                rows.flatten!
+                cols << rows if rows.length == 4
+            end
+            
+            while cols.length > 1
+                first = cols.pop
+                cols.each do |second|
+                    if first[2] == second[2] and first[3] == second[3]
+                        x_cols = [first[1], second[1]]
+                        [first[2], first[3]].each do |row|
+                            cells_by_row(row).each do |cell|
+                                if not x_cols.include? cell.col and cell.remove(possible) 
+                                    found = true
+                                end
+                            end
+                        end
+                        if found
+                            puts "X-Wing for #{possible} in cols #{x_cols}"
+                            return true
+                        end
+                    end
+                end
+            end
+            
+        end
+        
+        found        
+    end
+        
+    def swordfish
+        puts "=== Swordfish ==="
+        found = false
+        matches = []
+
+        "123456789".scan(/./).each do |possible|
+            rows = []        
+            (0..8).each do |row|
+                cols = [possible, row] + cells_by_row(row).select { |cell| cell.has? possible }.map { |cell| cell.col }
+                rows << cols if cols.length == 4 || cols.length == 5
+            end
+            
+            rows.each do |row|
+                if row.length == 5
+                    triple = [row] + rows.select { |match| match != row and (match[2..-1] - row[2..-1]).length == 0 }
+                    if triple.length == 3
+                        puts "triple=#{triple.inspect}"
+                        triple_cols = row[2..-1]
+                        triple_rows = triple.map { |x| x[1] }
+                        puts "rows=#{triple_rows.inspect} cols=#{triple_cols.inspect}"
+                        triple_cols.each do |col|
+                            cells_by_col(col).each do |cell|
+                                if not triple_rows.include? cell.row 
+                                    found = true if cell.remove(possible)
+                                end
+                            end
+                        end
+                        return true if found
+                    end
+                end
+            end
+                
+            
+        end
+        
+        "123456789".scan(/./).each do |possible|
+            cols = []        
+            (0..8).each do |col|
+                rows = [possible, col] + cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
+                cols << rows if rows.length == 4 || rows.length == 5
+            end
+            
+            cols.each do |col|
+                if col.length == 5
+                    triple = [col] + cols.select { |match| match != col and (match[2..-1] - row[2..-1]).length == 0 }
+                    if triple.length == 3
+                        puts "triple=#{triple.inspect}"
+                        triple_rows = col[2..-1]
+                        triple_cols = triple.map { |x| x[1] }
+                        puts "cols=#{triple_cols.inspect} rows=#{triple_rows.inspect}"
+                        triple_rows.each do |row|
+                            cells_by_row(row).each do |cell|
+                                if not triple_cols.include? cell.col 
+                                    found = true if cell.remove(possible)
+                                end
+                            end
+                        end
+                        return true if found
+                    end
+                end
+            end
+                
+            
+        end
+        
+        found        
+    end
+        
 end
 
 board = Board.new(get_data)
@@ -305,6 +442,8 @@ while running
     elsif board.naked_pairs
     elsif board.pointing_pairs
     elsif board.box_line_reduction
+    elsif board.x_wing
+    elsif board.swordfish
     else 
         running = false
     end
