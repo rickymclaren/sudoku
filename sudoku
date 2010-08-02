@@ -42,7 +42,7 @@ class Cell
     
     def remove_possibles(values)
         found = false        
-        values.scan(/./).each { |value| found ||= remove(value) }
+        values.scan(/./).each { |value| found = true if remove(value) }
         found
     end
     
