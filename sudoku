@@ -103,20 +103,13 @@ class Board
     def singles
         puts "=== Singles ==="
         found = false
-        row = col = 0
         
         (0..8).each do |row|
             "123456789".scan(/./) do |possible|
-                count = 0
-                cells_by_row(row).each do |cell|
-                    if cell.has?(possible)
-                        count += 1
-                        col = cell.col
-                    end
-                end
-                if count == 1
+                cells = cells_by_row(row).select { |cell| cell.has?(possible) }
+                if cells.length == 1
                     puts "Single #{possible} in row #{row}"
-                    solve(cell(row, col), possible)
+                    solve(cells[0], possible)
                     found = true
                 end
             end
@@ -124,16 +117,10 @@ class Board
         
         (0..8).each do |col|
             "123456789".scan(/./) do |possible|
-                count = 0
-                cells_by_col(col).each do |cell|
-                    if cell.has?(possible)
-                        count += 1
-                        row = cell.row
-                    end
-                end
-                if count == 1
+                cells = cells_by_col(col).select { |cell| cell.has?(possible) }
+                if cells.length == 1
                     puts "Single #{possible} in col #{col}"
-                    solve(cell(row, col), possible)
+                    solve(cells[0], possible)
                     found = true
                 end
             end
@@ -141,17 +128,10 @@ class Board
         
         (0..8).each do |box|
             "123456789".scan(/./) do |possible|
-                count = 0
-                cells_by_box(box).each do |cell|
-                    if cell.has?(possible)
-                        count += 1
-                        row = cell.row
-                        col = cell.col
-                    end
-                end
-                if count == 1
+                cells = cells_by_box(box).select { |cell| cell.has?(possible) }
+                if cells.length == 1
                     puts "Single #{possible} in box #{box}"
-                    solve(cell(row, col), possible)
+                    solve(cells[0], possible)
                     found = true
                 end
             end
