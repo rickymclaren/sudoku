@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
 
 def get_data()
-    '700200040400030907015040000000700000057000210000009000000080360503070002020006004'
+    ['..6..7..8..1.3....25......9..7.58...9.......1...14.7..8......16....9.4..4..5..8..',
+     '.9..3..8.......9..4...8...63....17.4.5.7.3.1.7.16....55...9...8..8.......4..1..2.',
+     '9...2...3..7...5.....8.4....6.2.3.1...16.83...2.4.7.6....5.2.....4...7..1...7...6',
+     #'7..2...4.4...3.9.7.15.4.......7......57...21......9.......8.36.5.3.7...2.2...6..4'
+    ]
 end
 
 class Cell
@@ -31,9 +35,9 @@ class Cell
         found = false
         if @possibles.length > 1
             found = @possibles.sub!(value, '')
-            puts "removed #{value} from #{self}" if found
+#            puts "removed #{value} from #{self}" if found
             if @possibles.length == 1
-                puts "#{self} solved"
+#                puts "#{self} solved"
                 @board.solve(self, @possibles)
             end
         end
@@ -61,7 +65,7 @@ class Board
         i = 0
         (0..8).each { |row| (0..8).each { |col| 
             value = data[i,1]
-            solve(cell(row, col), value) if value != '0' 
+            solve(cell(row, col), value) if '123456789'.include? value 
             i += 1
         }}
             
@@ -197,6 +201,69 @@ class Board
         end
         
         found        
+    end
+        
+    def naked_triples
+        puts "=== Naked Triples ==="
+        found = false
+        
+        (0..8).each do |row|
+            cells_by_row(row).select { |cell| cell.possibles.length == 3}.each do |three|
+                triple = [three] + cells_by_row(row).select do |cell| 
+                    cell != three and (cell.possibles.split(//) - three.possibles.split(//)).length == 0
+                end
+                if triple.length == 3
+                    cells_by_row(row).each do |cell|
+                        if not triple.include? cell
+                            found = true if cell.remove_possibles(three.possibles)
+                        end
+                    end
+                    if found
+                        puts "Naked triple found in row #{row} #{triple}" 
+                    end
+                end
+            end
+        end
+        
+        (0..8).each do |col|
+            cells_by_col(col).select { |cell| cell.possibles.length == 3}.each do |three|
+                triple = [three] + cells_by_col(col).select do |cell| 
+                    cell != three and (cell.possibles.split(//) - three.possibles.split(//)).length == 0
+                end
+                if triple.length == 3
+                    cells_by_col(col).each do |cell|
+                        if not triple.include? cell
+                            foud = true if cell.remove_possibles(three.possibles)
+                        end
+                    end
+                    if found
+                        puts "Naked triple found in col #{col} #{triple}" 
+                        return true
+                    end
+                end
+            end
+        end
+        
+        (0..8).each do |box|
+            cells_by_box(box).select { |cell| cell.possibles.length == 3}.each do |three|
+                triple = [three] + cells_by_box(box).select do |cell| 
+                    cell != three and (cell.possibles.split(//) - three.possibles.split(//)).length == 0
+                end
+                if triple.length == 3
+                    cells_by_box(box).each do |cell|
+                        if not triple.include? cell
+                            found = true if cell.remove_possibles(three.possibles)
+                        end
+                    end
+                    if found
+                        puts "Naked triple found in box #{box} #{triple}" 
+                        return true
+                    end
+                end
+            end
+        end
+        
+        found
     end
         
     def pointing_pairs
@@ -389,7 +456,7 @@ class Board
             
             cols.each do |col|
                 if col.length == 5
-                    triple = [col] + cols.select { |match| match != col and (match[2..-1] - row[2..-1]).length == 0 }
+                    triple = [col] + cols.select { |match| match != col and (match[2..-1] - col[2..-1]).length == 0 }
                     if triple.length == 3
                         puts "triple=#{triple.inspect}"
                         triple_rows = col[2..-1]
@@ -412,22 +479,31 @@ class Board
         
         found        
     end
+    
+    def solved
+        @cells.each { |cell| return false if cell.possibles.length > 1 }
+        true
+    end
         
 end
 
-board = Board.new(get_data)
-running = true
-while running
-    if board.singles
-    elsif board.naked_pairs
-    elsif board.pointing_pairs
-    elsif board.box_line_reduction
-    elsif board.x_wing
-    elsif board.swordfish
-    else 
-        running = false
+get_data.each do |data|
+    board = Board.new(data)
+    running = true
+    while running
+        if board.singles
+        elsif board.naked_pairs
+        elsif board.naked_triples
+        elsif board.pointing_pairs
+        elsif board.box_line_reduction
+        elsif board.x_wing
+        elsif board.swordfish
+        else 
+            running = false
+        end
+        puts board.to_s
     end
-    puts board.to_s
+    exit if not board.solved
 end
 
 
