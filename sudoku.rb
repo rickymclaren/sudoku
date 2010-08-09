@@ -448,10 +448,8 @@ class Board
                 if row.length == 5
                     triple = [row] + rows.select { |match| match != row and (match[2..-1] - row[2..-1]).length == 0 }
                     if triple.length == 3
-                        puts "triple=#{triple.inspect}"
                         triple_cols = row[2..-1]
                         triple_rows = triple.map { |x| x[1] }
-                        puts "rows=#{triple_rows.inspect} cols=#{triple_cols.inspect}"
                         triple_cols.each do |col|
                             cells_by_col(col).each do |cell|
                                 if not triple_rows.include? cell.row 
@@ -459,7 +457,11 @@ class Board
                                 end
                             end
                         end
-                        return true if found
+                        if found
+                            puts "triple=#{triple.inspect}"
+                            puts "rows=#{triple_rows.inspect} cols=#{triple_cols.inspect}"
+                            return true
+                        end
                     end
                 end
             end
@@ -478,10 +480,8 @@ class Board
                 if col.length == 5
                     triple = [col] + cols.select { |match| match != col and (match[2..-1] - col[2..-1]).length == 0 }
                     if triple.length == 3
-                        puts "triple=#{triple.inspect}"
                         triple_rows = col[2..-1]
                         triple_cols = triple.map { |x| x[1] }
-                        puts "cols=#{triple_cols.inspect} rows=#{triple_rows.inspect}"
                         triple_rows.each do |row|
                             cells_by_row(row).each do |cell|
                                 if not triple_cols.include? cell.col 
@@ -489,7 +489,11 @@ class Board
                                 end
                             end
                         end
-                        return true if found
+                        if found
+                            puts "triple=#{triple.inspect}"
+                            puts "cols=#{triple_cols.inspect} rows=#{triple_rows.inspect}"
+                            return true 
+                        end
                     end
                 end
             end
