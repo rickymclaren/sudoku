@@ -355,7 +355,7 @@ class Board
                     end
                 end
                 if found
-                    puts "Box Line reduction of #{possible} on col #{row}"
+                    puts "Box Line reduction of #{possible} on col #{col}"
                     return true
                 end
             end
