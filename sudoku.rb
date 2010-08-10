@@ -10,18 +10,20 @@ def get_data()
      '..28...1...1.....36..2..5..46.35....7.......6....74.58..7..5..12.....4...3...89..', # 7
      '7..61.9..3.......7....2.8..5....2....49...52....9....1..4.3....9.......4..2.78..5', # 8
      '8..9.6....5....1.....3.4.6...7.8.5..2.......1..3.7.9...9.5.8.....8....9....1.9..3', # 9
+     '.9..3..1....6.7...7.......58..975..497.....585..428..34.......1...8.1....5..6..2.', # 74
      #'7..2...4.4...3.9.7.15.4.......7......57...21......9.......8.36.5.3.7...2.2...6..4'
     ]
 end
 
 class Cell
 
-    attr_reader :board, :row, :col, :possibles
+    attr_reader :board, :row, :col, :possibles, :ref
     
-    def initialize(board, row, col)
+    def initialize(board, row, col, ref)
         @board = board
         @row = row
         @col = col
+        @ref = ref
         @possibles = '123456789'
     end
     
@@ -57,7 +59,7 @@ class Cell
     end
     
     def to_s()
-        "Cell #{@row}:#{@col}=#{@possibles}"
+        "Cell #{@ref} #{@row}:#{@col}=#{@possibles}"
     end
     
 end 
@@ -67,7 +69,8 @@ class Board
     def initialize(data)
         puts "=== Populating board ==="
         @cells = []
-        (0..8).each { |row| (0..8).each { |col| @cells << Cell.new(self, row, col) }}
+        i = 0
+        (0..8).each { |row| (0..8).each { |col| @cells << Cell.new(self, row, col, i); i += 1 }}
         i = 0
         (0..8).each { |row| (0..8).each { |col| 
             value = data[i,1]
@@ -122,6 +125,10 @@ class Board
 
     def cells_by_box(box)
         @cells.select { |cell| cell.box == box }
+    end
+    
+    def cell_by_ref(ref)
+        @cells.select { |cell| cell.ref == ref }[0]
     end
     
     def singles
@@ -277,6 +284,94 @@ class Board
                     end
                     if found
                         puts "Naked triple found in box #{box} #{triple}" 
+                        return true
+                    end
+                end
+            end
+        end
+        
+        found
+    end
+    
+    def hidden_pairs
+        puts "=== Hidden Pairs ==="
+        found = false
+
+        (0..8).each do |row|
+            cells = []        
+            "123456789".scan(/./).each do |possible|
+                matches = cells_by_row(row).select { |cell| cell.has? possible }
+                if matches.length == 2
+                    cells << [possible] + [matches.map { |cell| cell.ref }]
+                end
+            end
+            while cells.length >= 2
+                first = cells.pop
+                second = cells.select { |cell| cell[1] == first[1] }
+                if second.length == 1
+                    pair = first[0] + second[0][0]
+                    refs = first[1]
+                    refs.each do |ref|
+                        cell = cell_by_ref(ref)
+                        extras = cell.possibles.sub(pair[0,1], '').sub(pair[1,1], '')
+                        found = true if cell.remove_possibles(extras)
+                    end
+                    if found
+                        puts "match #{pair.inspect} in refs=> #{refs.inspect}"
+                        return true
+                    end
+                end
+            end
+        end
+        
+        (0..8).each do |col|
+            cells = []        
+            "123456789".scan(/./).each do |possible|
+                matches = cells_by_col(col).select { |cell| cell.has? possible }
+                if matches.length == 2
+                    cells << [possible] + [matches.map { |cell| cell.ref }]
+                end
+            end
+            while cells.length >= 2
+                first = cells.pop
+                second = cells.select { |cell| cell[1] == first[1] }
+                if second.length == 1
+                    pair = first[0] + second[0][0]
+                    refs = first[1]
+                    refs.each do |ref|
+                        cell = cell_by_ref(ref)
+                        extras = cell.possibles.sub(pair[0,1], '').sub(pair[1,1], '')
+                        found = true if cell.remove_possibles(extras)
+                    end
+                    if found
+                        puts "match #{pair.inspect} in refs=> #{refs.inspect}"
+                        return true
+                    end
+                end
+            end
+        end
+        
+        (0..8).each do |box|
+            cells = []        
+            "123456789".scan(/./).each do |possible|
+                matches = cells_by_box(box).select { |cell| cell.has? possible }
+                if matches.length == 2
+                    cells << [possible] + [matches.map { |cell| cell.ref }]
+                end
+            end
+            while cells.length >= 2
+                first = cells.pop
+                second = cells.select { |cell| cell[1] == first[1] }
+                if second.length == 1
+                    pair = first[0] + second[0][0]
+                    refs = first[1]
+                    refs.each do |ref|
+                        cell = cell_by_ref(ref)
+                        extras = cell.possibles.sub(pair[0,1], '').sub(pair[1,1], '')
+                        found = true if cell.remove_possibles(extras)
+                    end
+                    if found
+                        puts "match #{pair.inspect} in refs=> #{refs.inspect}"
                         return true
                     end
                 end
@@ -505,8 +600,7 @@ class Board
     end
     
     def solved
-        @cells.each { |cell| return false if cell.possibles.length > 1 }
-        true
+        @cells.all? { |cell| cell.possibles.length == 1 }
     end
         
 end
@@ -518,6 +612,7 @@ get_data.each do |data|
         if board.singles
         elsif board.naked_pairs
         elsif board.naked_triples
+        elsif board.hidden_pairs
         elsif board.pointing_pairs
         elsif board.box_line_reduction
         elsif board.x_wing
