@@ -172,6 +172,7 @@ class Board
     end
 
     def naked_pairs
+        # http://www.sudokuwiki.org/Naked_Candidates#NP
         puts "=== Naked Pairs ==="
         found = false
         row = col = 0
@@ -231,6 +232,7 @@ class Board
     end
         
     def naked_triples
+       # http://www.sudokuwiki.org/Naked_Candidates#NP
         puts "=== Naked Triples ==="
         found = false
         
@@ -294,6 +296,7 @@ class Board
     end
     
     def hidden_pairs
+        # http://www.sudokuwiki.org/Hidden_Candidates#HP
         puts "=== Hidden Pairs ==="
         found = false
 
@@ -382,6 +385,7 @@ class Board
     end
         
     def pointing_pairs
+        # http://www.sudokuwiki.org/Intersection_Removal#IR
         puts "=== Pointing Pairs ==="
         found = false
         row = col = 0
@@ -416,6 +420,7 @@ class Board
     end
         
     def box_line_reduction
+        # http://www.sudokuwiki.org/Intersection_Removal#LBR
         puts "=== Box-Line Reduction ==="
         found = false
         row = col = 0
@@ -460,6 +465,7 @@ class Board
     end
         
     def x_wing
+        # http://www.sudokuwiki.org/X_Wing_Strategy
         puts "=== X-Wing ==="
         found = false
         row = col = 0
@@ -528,6 +534,7 @@ class Board
     end
         
     def swordfish
+        # http://www.sudokuwiki.org/Sword_Fish_Strategy
         puts "=== Swordfish ==="
         found = false
         matches = []
