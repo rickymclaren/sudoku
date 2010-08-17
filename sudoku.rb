@@ -246,7 +246,7 @@ class Board
                 if triple.length == 3
                     cells_by_col(col).each do |cell|
                         if not triple.include? cell
-                            foud = true if cell.remove_possibles(three.possibles)
+                            found = true if cell.remove_possibles(three.possibles)
                         end
                     end
                     if found
