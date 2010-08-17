@@ -155,66 +155,6 @@ class Board
         found
     end
 
-    def naked_pairs
-        # http://www.sudokuwiki.org/Naked_Candidates#NP
-        puts "=== Naked Pairs ==="
-        found = false
-        row = col = 0
-        
-        (0..8).each do |row|
-            pairs = cells_by_row(row).select { |cell| cell.possibles.length == 2}
-            while pairs.length >= 2
-                first = pairs.pop
-                pairs.each do |second|
-                    if first.possibles == second.possibles
-                        cells_by_row(row).each do |cell|
-                            if cell != first and cell != second and cell.remove_possibles(first.possibles)
-                                puts "Naked Pair #{first.possibles} on row #{row}"
-                                found = true
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        (0..8).each do |col|
-            pairs = cells_by_col(col).select { |cell| cell.possibles.length == 2}
-            while pairs.length >= 2
-                first = pairs.pop
-                pairs.each do |second|
-                    if first.possibles == second.possibles
-                        cells_by_col(col).each do |cell|
-                            if cell != first and cell != second and cell.remove_possibles(first.possibles)
-                                puts "Naked Pair #{first.possibles} on col #{col}"
-                                found = true
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        (0..8).each do |box|
-            pairs = cells_by_box(box).select { |cell| cell.possibles.length == 2}
-            while pairs.length >= 2
-                first = pairs.pop
-                pairs.each do |second|
-                    if first.possibles == second.possibles
-                        cells_by_box(box).each do |cell|
-                            if cell != first and cell != second and cell.remove_possibles(first.possibles)
-                                puts "Naked Pair #{first.possibles} on box #{box}"
-                                found = true
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        found        
-    end
-        
     def combinations(array, r)
         n = array.length
         indices = (0...r).to_a
