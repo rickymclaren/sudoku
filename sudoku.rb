@@ -215,63 +215,50 @@ class Board
         found        
     end
         
-    def naked_triples
-       # http://www.sudokuwiki.org/Naked_Candidates#NP
-        puts "=== Naked Triples ==="
+    def combinations(array, r)
+        n = array.length
+        indices = (0...r).to_a
+        final = (n - r...n).to_a
+        while indices != final
+            yield indices.map {|k| array[k]}
+            i = r - 1
+            while indices[i] == n - r + i
+                i -= 1
+            end
+            indices[i] += 1
+            (i + 1...r).each do |j|
+                indices[j] = indices[i] + j - i
+            end
+        end
+        yield indices.map {|k| array[k]}
+    end
+
+        
+        
+    def naked_cells( cells )
         found = false
         
-        (0..8).each do |row|
-            cells_by_row(row).select { |cell| cell.possibles.length == 3}.each do |three|
-                triple = [three] + cells_by_row(row).select do |cell| 
-                    cell != three and (cell.possibles.split(//) - three.possibles.split(//)).length == 0
-                end
-                if triple.length == 3
-                    cells_by_row(row).each do |cell|
-                        if not triple.include? cell
-                            found = true if cell.remove_possibles(three.possibles)
-                        end
-                    end
-                    if found
-                        puts "Naked triple found in row #{row} #{triple}" 
-                    end
-                end
-            end
+        cells = cells.select { |cell| cell.possibles.length > 1 }
+        possibles = cells.map { |cell| cell.possibles }.join.split(//).uniq.sort
+        
+        combos = []
+        (2...possibles.length).each do |r|
+            combinations(possibles, r) { |x| combos << x }
         end
         
-        (0..8).each do |col|
-            cells_by_col(col).select { |cell| cell.possibles.length == 3}.each do |three|
-                triple = [three] + cells_by_col(col).select do |cell| 
-                    cell != three and (cell.possibles.split(//) - three.possibles.split(//)).length == 0
-                end
-                if triple.length == 3
-                    cells_by_col(col).each do |cell|
-                        if not triple.include? cell
-                            found = true if cell.remove_possibles(three.possibles)
-                        end
-                    end
-                    if found
-                        puts "Naked triple found in col #{col} #{triple}" 
-                        return true
+        combos.each do |combo|
+            matches = cells.select { |cell| (cell.possibles.split(//) - combo).length == 0 }
+            if matches.length == combo.length
+                remove = combo.join
+                cells.each do |cell|
+                    if not matches.include? cell
+                        found = true if cell.remove_possibles(remove)
                     end
                 end
-            end
-        end
-        
-        (0..8).each do |box|
-            cells_by_box(box).select { |cell| cell.possibles.length == 3}.each do |three|
-                triple = [three] + cells_by_box(box).select do |cell| 
-                    cell != three and (cell.possibles.split(//) - three.possibles.split(//)).length == 0
-                end
-                if triple.length == 3
-                    cells_by_box(box).each do |cell|
-                        if not triple.include? cell
-                            found = true if cell.remove_possibles(three.possibles)
-                        end
-                    end
-                    if found
-                        puts "Naked triple found in box #{box} #{triple}" 
-                        return true
-                    end
+                if found
+                    where = matches.map { |cell| "#{cell.row}:#{cell.col}" }.join(" ")
+                    puts "Naked #{remove} found in #{where}"
+                    return true
                 end
             end
         end
@@ -279,95 +266,15 @@ class Board
         found
     end
     
-    def hidden_pairs
-        # http://www.sudokuwiki.org/Hidden_Candidates#HP
-        puts "=== Hidden Pairs ==="
-        found = false
-
-        (0..8).each do |row|
-            cells = []        
-            "123456789".scan(/./).each do |possible|
-                matches = cells_by_row(row).select { |cell| cell.has? possible }
-                if matches.length == 2
-                    cells << [possible] + [matches.map { |cell| cell.ref }]
-                end
-            end
-            while cells.length >= 2
-                first = cells.pop
-                second = cells.select { |cell| cell[1] == first[1] }
-                if second.length == 1
-                    pair = first[0] + second[0][0]
-                    refs = first[1]
-                    refs.each do |ref|
-                        cell = cell_by_ref(ref)
-                        extras = cell.possibles.sub(pair[0,1], '').sub(pair[1,1], '')
-                        found = true if cell.remove_possibles(extras)
-                    end
-                    if found
-                        puts "match #{pair.inspect} in refs=> #{refs.inspect}"
-                        return true
-                    end
-                end
-            end
-        end
-        
-        (0..8).each do |col|
-            cells = []        
-            "123456789".scan(/./).each do |possible|
-                matches = cells_by_col(col).select { |cell| cell.has? possible }
-                if matches.length == 2
-                    cells << [possible] + [matches.map { |cell| cell.ref }]
-                end
-            end
-            while cells.length >= 2
-                first = cells.pop
-                second = cells.select { |cell| cell[1] == first[1] }
-                if second.length == 1
-                    pair = first[0] + second[0][0]
-                    refs = first[1]
-                    refs.each do |ref|
-                        cell = cell_by_ref(ref)
-                        extras = cell.possibles.sub(pair[0,1], '').sub(pair[1,1], '')
-                        found = true if cell.remove_possibles(extras)
-                    end
-                    if found
-                        puts "match #{pair.inspect} in refs=> #{refs.inspect}"
-                        return true
-                    end
-                end
-            end
-        end
-        
-        (0..8).each do |box|
-            cells = []        
-            "123456789".scan(/./).each do |possible|
-                matches = cells_by_box(box).select { |cell| cell.has? possible }
-                if matches.length == 2
-                    cells << [possible] + [matches.map { |cell| cell.ref }]
-                end
-            end
-            while cells.length >= 2
-                first = cells.pop
-                second = cells.select { |cell| cell[1] == first[1] }
-                if second.length == 1
-                    pair = first[0] + second[0][0]
-                    refs = first[1]
-                    refs.each do |ref|
-                        cell = cell_by_ref(ref)
-                        extras = cell.possibles.sub(pair[0,1], '').sub(pair[1,1], '')
-                        found = true if cell.remove_possibles(extras)
-                    end
-                    if found
-                        puts "match #{pair.inspect} in refs=> #{refs.inspect}"
-                        return true
-                    end
-                end
-            end
-        end
-        
-        found
+    def nakeds
+        # http://www.sudokuwiki.org/Naked_Candidates#NP
+        puts "=== Nakeds ==="
+        (0..8).each { |row| return true if naked_cells(cells_by_row(row)) }
+        (0..8).each { |col| return true if naked_cells(cells_by_col(col)) }
+        (0..8).each { |box| return true if naked_cells(cells_by_box(box)) }
+        false
     end
-        
+    
     def pointing_pairs
         # http://www.sudokuwiki.org/Intersection_Removal#IR
         puts "=== Pointing Pairs ==="
@@ -606,9 +513,7 @@ File.new("data.txt", "r").each do |data|
     running = true
     while running
         if board.singles
-        elsif board.naked_pairs
-        elsif board.naked_triples
-        elsif board.hidden_pairs
+        elsif board.nakeds
         elsif board.pointing_pairs
         elsif board.box_line_reduction
         elsif board.x_wing
