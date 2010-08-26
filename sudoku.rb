@@ -431,7 +431,7 @@ class Board
                         end
                     end
                     if found
-                        puts "#{possible} in rows #{triple_rows.inspect} cols #{cols.inspect}"
+                        puts "#{possible} in cols #{triple_cols.inspect} rows #{rows.inspect}"
                         return true
                     end
                 end
