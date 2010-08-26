@@ -377,29 +377,31 @@ class Board
                 rows << cols if cols.length == 4 || cols.length == 5
             end
             
-            rows.each do |row|
-                if row.length == 5
-                    triple = [row] + rows.select { |match| match != row and (match[2..-1] - row[2..-1]).length == 0 }
-                    if triple.length == 3
-                        triple_cols = row[2..-1]
-                        triple_rows = triple.map { |x| x[1] }
-                        triple_cols.each do |col|
-                            cells_by_col(col).each do |cell|
-                                if not triple_rows.include? cell.row 
-                                    found = true if cell.remove(possible)
-                                end
+            combos = []
+            if rows.size >= 3
+                combinations(rows.map {|row| row[1]}, 3) { |x| combos << x }
+            end
+            
+            combos.each do |combo|
+                triple = rows.select {|row| combo.include? row[1] }
+                cols = []
+                triple.each {|t| cols += t[2..-1]}
+                cols.uniq!
+                if cols.size == 3
+                    triple_rows = triple.map {|t| t[1] }
+                    cols.each do |col|
+                        cells_by_col(col).each do |cell|
+                            if not triple_rows.include? cell.row
+                                found = true if cell.remove(possible)
                             end
                         end
-                        if found
-                            puts "triple=#{triple.inspect}"
-                            puts "rows=#{triple_rows.inspect} cols=#{triple_cols.inspect}"
-                            return true
-                        end
+                    end
+                    if found
+                        puts "#{possible} in rows #{triple_rows.inspect} cols #{cols.inspect}"
+                        return true
                     end
                 end
             end
-                
-            
         end
         
         "123456789".scan(/./).each do |possible|
@@ -409,28 +411,31 @@ class Board
                 cols << rows if rows.length == 4 || rows.length == 5
             end
             
-            cols.each do |col|
-                if col.length == 5
-                    triple = [col] + cols.select { |match| match != col and (match[2..-1] - col[2..-1]).length == 0 }
-                    if triple.length == 3
-                        triple_rows = col[2..-1]
-                        triple_cols = triple.map { |x| x[1] }
-                        triple_rows.each do |row|
-                            cells_by_row(row).each do |cell|
-                                if not triple_cols.include? cell.col 
-                                    found = true if cell.remove(possible)
-                                end
+            combos = []
+            if cols.size >= 3
+                combinations(cols.map {|col| col[1]}, 3) { |x| combos << x }
+            end
+            
+            combos.each do |combo|
+                triple = cols.select {|col| combo.include? col[1] }
+                rows = []
+                triple.each {|t| rows += t[2..-1]}
+                rows.uniq!
+                if rows.size == 3
+                    triple_cols = triple.map {|t| t[1] }
+                    rows.each do |row|
+                        cells_by_row(row).each do |cell|
+                            if not triple_cols.include? cell.col
+                                found = true if cell.remove(possible)
                             end
                         end
-                        if found
-                            puts "triple=#{triple.inspect}"
-                            puts "cols=#{triple_cols.inspect} rows=#{triple_rows.inspect}"
-                            return true 
-                        end
+                    end
+                    if found
+                        puts "#{possible} in rows #{triple_rows.inspect} cols #{cols.inspect}"
+                        return true
                     end
                 end
             end
-                
             
         end
         
