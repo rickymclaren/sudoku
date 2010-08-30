@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+# Solves all 120 puzzles in Wayne Gould's Extreme Su Doku 2
+# See http://www.sudokuwiki.org for explanation of strategies
+# Note: I do not use hidden strategies since these seem to be mirror
+# images of longer naked strategies and I personally am more likely
+# to spot a long naked sequence than a short hidden one.
+
 class Cell
 
     attr_reader :board, :row, :col, :possibles, :ref
@@ -28,9 +34,7 @@ class Cell
         found = false
         if @possibles.length > 1
             found = @possibles.sub!(value, '')
-#            puts "removed #{value} from #{self}" if found
             if @possibles.length == 1
-#                puts "#{self} solved"
                 @board.solve(self, @possibles)
             end
         end
@@ -116,7 +120,6 @@ class Board
     end
     
     def singles
-        puts "=== Singles ==="
         found = false
         
         (0..8).each do |row|
@@ -208,7 +211,6 @@ class Board
     
     def nakeds
         # http://www.sudokuwiki.org/Naked_Candidates#NP
-        puts "=== Nakeds ==="
         (0..8).each { |row| return true if naked_cells(cells_by_row(row)) }
         (0..8).each { |col| return true if naked_cells(cells_by_col(col)) }
         (0..8).each { |box| return true if naked_cells(cells_by_box(box)) }
@@ -217,7 +219,6 @@ class Board
     
     def pointing_pairs
         # http://www.sudokuwiki.org/Intersection_Removal#IR
-        puts "=== Pointing Pairs ==="
         found = false
         row = col = 0
         
@@ -252,7 +253,6 @@ class Board
         
     def box_line_reduction
         # http://www.sudokuwiki.org/Intersection_Removal#LBR
-        puts "=== Box-Line Reduction ==="
         found = false
         row = col = 0
         
@@ -297,7 +297,6 @@ class Board
         
     def x_wing
         # http://www.sudokuwiki.org/X_Wing_Strategy
-        puts "=== X-Wing ==="
         found = false
         row = col = 0
 
@@ -366,7 +365,6 @@ class Board
         
     def swordfish
         # http://www.sudokuwiki.org/Sword_Fish_Strategy
-        puts "=== Swordfish ==="
         found = false
         matches = []
 
@@ -397,7 +395,7 @@ class Board
                         end
                     end
                     if found
-                        puts "#{possible} in rows #{triple_rows.inspect} cols #{cols.inspect}"
+                        puts "Swordfish #{possible} in rows #{triple_rows.inspect} cols #{cols.inspect}"
                         return true
                     end
                 end
@@ -431,7 +429,7 @@ class Board
                         end
                     end
                     if found
-                        puts "#{possible} in cols #{triple_cols.inspect} rows #{rows.inspect}"
+                        puts "Swordfish #{possible} in cols #{triple_cols.inspect} rows #{rows.inspect}"
                         return true
                     end
                 end
@@ -453,7 +451,6 @@ File.new("data.txt", "r").each do |data|
     exit if data.length < 81
     line += 1
     puts "=== Populating board #{line} ==="
-    puts data
     board = Board.new(data)
     running = true
     while running
@@ -466,8 +463,8 @@ File.new("data.txt", "r").each do |data|
         else 
             running = false
         end
-        puts board.to_s
     end
+    puts board.to_s
     exit if not board.solved
 end
 
