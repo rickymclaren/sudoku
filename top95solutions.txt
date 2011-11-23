@@ -1,5 +1,3 @@
-<html>
-<pre>
 >>> solve_all(from_file("top95.txt"), "hard")
 4 . . |. . . |8 . 5 
 . 3 . |. . . |. . . 
@@ -2472,5 +2470,3 @@
 (0.08 seconds)
 
 Solved 95 of 95 hard puzzles (avg 0.04 secs (27 Hz), max 0.19 secs).
-</pre>
-</html>
