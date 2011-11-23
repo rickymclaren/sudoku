@@ -447,6 +447,8 @@ class Board
 end
 
 line = 0
+solved=0
+total=0
 File.new("top95.txt", "r").each do |data|
     exit if data.length < 81
     line += 1
@@ -465,7 +467,12 @@ File.new("top95.txt", "r").each do |data|
         end
     end
     puts board.to_s
-    exit if not board.solved
+    #exit if not board.solved
+    solved += 1 if board.solved
+    total += 1
 end
+
+puts "Solved #{solved} of #{total} puzzles"
+
 
 
