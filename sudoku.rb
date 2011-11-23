@@ -447,7 +447,7 @@ class Board
 end
 
 line = 0
-File.new("data.txt", "r").each do |data|
+File.new("top95.txt", "r").each do |data|
     exit if data.length < 81
     line += 1
     puts "=== Populating board #{line} ==="
