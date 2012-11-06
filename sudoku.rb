@@ -43,7 +43,7 @@ class Cell
     
     def remove_possibles(values)
         found = false        
-        values.scan(/./).each { |value| found = true if remove(value) }
+        values.each_char { |value| found = true if remove(value) }
         found
     end
     
@@ -123,7 +123,7 @@ class Board
         found = false
         
         (0..8).each do |row|
-            "123456789".scan(/./) do |possible|
+            "123456789".each_char do |possible|
                 cells = cells_by_row(row).select { |cell| cell.has?(possible) }
                 if cells.length == 1
                     puts "Single #{possible} in row #{row}"
@@ -134,7 +134,7 @@ class Board
         end
         
         (0..8).each do |col|
-            "123456789".scan(/./) do |possible|
+            "123456789".each_char do |possible|
                 cells = cells_by_col(col).select { |cell| cell.has?(possible) }
                 if cells.length == 1
                     puts "Single #{possible} in col #{col}"
@@ -145,7 +145,7 @@ class Board
         end
         
         (0..8).each do |box|
-            "123456789".scan(/./) do |possible|
+            "123456789".each_char do |possible|
                 cells = cells_by_box(box).select { |cell| cell.has?(possible) }
                 if cells.length == 1
                     puts "Single #{possible} in box #{box}"
@@ -203,7 +203,7 @@ class Board
         row = col = 0
         
         (0..8).each do |box|
-            "123456789".scan(/./).each do |possible|
+            "123456789".each_char do |possible|
                 pairs = cells_by_box(box).select { |cell| cell.has? possible}
                 if pairs.length == 2 or pairs.length == 3
                     if pairs[0].row == pairs[1].row and pairs[0].row == pairs[-1].row
@@ -237,7 +237,7 @@ class Board
         row = col = 0
         
         (0..8).each do |row|
-            "123456789".scan(/./).each do |possible|
+            "123456789".each_char do |possible|
                 cells = cells_by_row(row).select { |cell| cell.has? possible }
                 boxes = cells.map { |cell| cell.box}.uniq
                 if boxes.length == 1
@@ -255,7 +255,7 @@ class Board
         end
         
         (0..8).each do |col|
-            "123456789".scan(/./).each do |possible|
+            "123456789".each_char do |possible|
                 cells = cells_by_col(col).select { |cell| cell.has? possible }
                 boxes = cells.map { |cell| cell.box}.uniq
                 if boxes.length == 1
@@ -280,7 +280,7 @@ class Board
         found = false
         row = col = 0
 
-        "123456789".scan(/./).each do |possible|
+        "123456789".each_char do |possible|
             rows = []        
             (0..8).each do |row|
                 cols = [possible, row] << cells_by_row(row).select { |cell| cell.has? possible }.map { |cell| cell.col }
@@ -310,7 +310,7 @@ class Board
             
         end
         
-        "123456789".scan(/./).each do |possible|
+        "123456789".each_char do |possible|
             cols = []        
             (0..8).each do |col|
                 rows = [possible, col] << cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
@@ -348,7 +348,7 @@ class Board
         found = false
         matches = []
 
-        "123456789".scan(/./).each do |possible|
+        "123456789".each_char do |possible|
             rows = []        
             (0..8).each do |row|
                 cols = [possible, row] + cells_by_row(row).select { |cell| cell.has? possible }.map { |cell| cell.col }
@@ -382,7 +382,7 @@ class Board
             end
         end
         
-        "123456789".scan(/./).each do |possible|
+        "123456789".each_char do |possible|
             cols = []        
             (0..8).each do |col|
                 rows = [possible, col] + cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
