@@ -158,26 +158,6 @@ class Board
         found
     end
 
-    def combinations(array, r)
-        n = array.length
-        indices = (0...r).to_a
-        final = (n - r...n).to_a
-        while indices != final
-            yield indices.map {|k| array[k]}
-            i = r - 1
-            while indices[i] == n - r + i
-                i -= 1
-            end
-            indices[i] += 1
-            (i + 1...r).each do |j|
-                indices[j] = indices[i] + j - i
-            end
-        end
-        yield indices.map {|k| array[k]}
-    end
-
-        
-        
     def naked_cells( cells )
         found = false
         
@@ -186,7 +166,7 @@ class Board
         
         combos = []
         (2...possibles.length).each do |r|
-            combinations(possibles, r) { |x| combos << x }
+            possibles.combination(r) { |x| combos << x }
         end
         
         combos.each do |combo|
@@ -377,7 +357,7 @@ class Board
             
             combos = []
             if rows.size >= 3
-                combinations(rows.map {|row| row[1]}, 3) { |x| combos << x }
+                rows.map {|row| row[1]}.combination(3) { |x| combos << x }
             end
             
             combos.each do |combo|
@@ -411,7 +391,7 @@ class Board
             
             combos = []
             if cols.size >= 3
-                combinations(cols.map {|col| col[1]}, 3) { |x| combos << x }
+                cols.map {|col| col[1]}.combination(3) { |x| combos << x }
             end
             
             combos.each do |combo|
