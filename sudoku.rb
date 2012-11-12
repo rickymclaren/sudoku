@@ -275,107 +275,57 @@ class Board
         found        
     end
         
-    def x_wing
-        # http://www.sudokuwiki.org/X_Wing_Strategy
-        found = false
-        row = col = 0
-
-        "123456789".each_char do |possible|
-            rows = []        
-            (0..8).each do |row|
-                cols = [possible, row] << cells_by_row(row).select { |cell| cell.has? possible }.map { |cell| cell.col }
-                cols.flatten!
-                rows << cols if cols.length == 4
-            end
-            
-            while rows.length > 1
-                first = rows.pop
-                rows.each do |second|
-                    if first[2] == second[2] and first[3] == second[3]
-                        x_rows = [first[1], second[1]]
-                        [first[2], first[3]].each do |col|
-                            cells_by_col(col).each do |cell|
-                                if not x_rows.include? cell.row and cell.remove(possible) 
-                                    found = true
-                                end
-                            end
-                        end
-                        if found
-                            puts "X-Wing for #{possible} in rows #{x_rows}"
-                            return true
-                        end
-                    end
-                end
-            end
-            
-        end
-        
-        "123456789".each_char do |possible|
-            cols = []        
-            (0..8).each do |col|
-                rows = [possible, col] << cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
-                rows.flatten!
-                cols << rows if rows.length == 4
-            end
-            
-            while cols.length > 1
-                first = cols.pop
-                cols.each do |second|
-                    if first[2] == second[2] and first[3] == second[3]
-                        x_cols = [first[1], second[1]]
-                        [first[2], first[3]].each do |row|
-                            cells_by_row(row).each do |cell|
-                                if not x_cols.include? cell.col and cell.remove(possible) 
-                                    found = true
-                                end
-                            end
-                        end
-                        if found
-                            puts "X-Wing for #{possible} in cols #{x_cols}"
-                            return true
-                        end
-                    end
-                end
-            end
-            
-        end
-        
-        found        
-    end
-        
-    def swordfish
+    def swordfishes( scale )
         # http://www.sudokuwiki.org/Sword_Fish_Strategy
+
+        # Extension of swordfish to allow variations apart from 3x3
+        # Note: 2x2 should be same as X-Wing
+
+        type = "X-Wing" if scale == 2
+        type = "Swordfish" if scale == 3
+        type = "Swordfish-#{scale}" if scale > 3
+
         found = false
         matches = []
 
         "123456789".each_char do |possible|
+
+            # Find rows with this possible. 
+            # Store in a tuple [ possible, row, columns … ]
+
             rows = []        
             (0..8).each do |row|
                 cols = [possible, row] + cells_by_row(row).select { |cell| cell.has? possible }.map { |cell| cell.col }
-                rows << cols if cols.length == 4 || cols.length == 5
+                rows << cols if cols.length >= 3 && cols.length <= (scale+2)
             end
             
+            # If we have at least scale rows then try to find a combination of scale rows that share the same scale columns
+            # First get all combinations of scale rows that contain our possible
+
             combos = []
-            if rows.size >= 3
-                rows.map {|row| row[1]}.combination(3) { |x| combos << x }
+            if rows.size >= scale
+                rows.map {|row| row[1]}.combination(scale) { |x| combos << x }
             end
             
+            # Now check if the scale rows share the same scale cols
             combos.each do |combo|
-                triple = rows.select {|row| combo.include? row[1] }
+                scale_rows = rows.select {|row| combo.include? row[1] }
                 cols = []
-                triple.each {|t| cols += t[2..-1]}
+                scale_rows.each {|t| cols += t[2..-1]}
                 cols.uniq!
-                if cols.size == 3
-                    triple_rows = triple.map {|t| t[1] }
+
+                if cols.size == scale
+                    # Remove possibles from all the other rows
+                    row_numbers = scale_rows.map {|t| t[1] }
                     cols.each do |col|
                         cells_by_col(col).each do |cell|
-                            if not triple_rows.include? cell.row
+                            if not row_numbers.include? cell.row
                                 found = true if cell.remove(possible)
                             end
                         end
                     end
                     if found
-                        puts "Swordfish #{possible} in rows #{triple_rows.inspect} cols #{cols.inspect}"
+                        puts "#{type} #{possible} in rows #{scale_rows.inspect} cols #{cols.inspect}"
                         return true
                     end
                 end
@@ -383,33 +333,43 @@ class Board
         end
         
         "123456789".each_char do |possible|
+
+            # Find cols with this possible. 
+            # Store in a tuple [ possible, col, rows … ]
+
+
             cols = []        
             (0..8).each do |col|
                 rows = [possible, col] + cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
                 cols << rows if rows.length == 4 || rows.length == 5
             end
             
+            # If we have at least scale cols then try to find a combination of scale cols that share the same scale rows
+            # First get all combinations of scale cols that contain our possible
+
             combos = []
-            if cols.size >= 3
-                cols.map {|col| col[1]}.combination(3) { |x| combos << x }
+            if cols.size >= scale
+                cols.map {|col| col[1]}.combination(4) { |x| combos << x }
             end
             
+            # Now check if the scale cols share the same scale rows
             combos.each do |combo|
-                triple = cols.select {|col| combo.include? col[1] }
+                scale_cols = cols.select {|col| combo.include? col[1] }
                 rows = []
-                triple.each {|t| rows += t[2..-1]}
+                scale_cols.each {|t| rows += t[2..-1]}
                 rows.uniq!
-                if rows.size == 3
-                    triple_cols = triple.map {|t| t[1] }
+                if rows.size == scale
+                    # Remove possibles from all the other cols
+                    col_numbers = scale_cols.map {|t| t[1] }
                     rows.each do |row|
                         cells_by_row(row).each do |cell|
-                            if not triple_cols.include? cell.col
+                            if not col_numbers.include? cell.col
                                 found = true if cell.remove(possible)
                             end
                         end
                     end
                     if found
-                        puts "Swordfish #{possible} in cols #{triple_cols.inspect} rows #{rows.inspect}"
+                        puts "#{type} #{possible} in cols #{scale_cols.inspect} rows #{rows.inspect}"
                         return true
                     end
                 end
@@ -440,8 +400,13 @@ File.new("top95.txt", "r").each do |data|
         elsif board.nakeds
         elsif board.pointing_pairs
         elsif board.box_line_reduction
-        elsif board.x_wing
-        elsif board.swordfish
+        elsif board.swordfishes(2)
+        elsif board.swordfishes(3)
+        elsif board.swordfishes(4)
+        elsif board.swordfishes(5)
+        elsif board.swordfishes(6)
+        elsif board.swordfishes(7)
+        elsif board.swordfishes(8)
         else 
             running = false
         end
