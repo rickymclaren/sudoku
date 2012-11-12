@@ -383,12 +383,42 @@ class Board
     def solved
         @cells.all? { |cell| cell.possibles.length == 1 }
     end
+
+    def solution
+        if solved
+            return @cells.map { |cell| cell.possibles }.join
+        else
+            return "Not solved"
+        end
+    end
         
 end
 
 line = 0
 solved=0
 total=0
+solutions = []
+solution = ""
+
+File.new("top95solutions.txt", "r").each do |data|
+    data.gsub!(/\s/, "")
+    data.gsub!(/\-/, "")
+    data.gsub!(/\|/, "")
+    data.gsub!(/\+/, "")
+    if data[/^[0-9]{9}$/]
+        solution << data
+        if solution.size == 81
+           solutions << solution
+           solution = ""
+        end
+    end
+end
+
+solutions.each do |solution|
+    puts solution
+end
+
+line = 0
 File.new("top95.txt", "r").each do |data|
     exit if data.length < 81
     line += 1
@@ -402,18 +432,25 @@ File.new("top95.txt", "r").each do |data|
         elsif board.box_line_reduction
         elsif board.swordfishes(2)
         elsif board.swordfishes(3)
-        elsif board.swordfishes(4)
-        elsif board.swordfishes(5)
-        elsif board.swordfishes(6)
-        elsif board.swordfishes(7)
-        elsif board.swordfishes(8)
+#        elsif board.swordfishes(4)
+#        elsif board.swordfishes(5)
+#        elsif board.swordfishes(6)
+#        elsif board.swordfishes(7)
+#        elsif board.swordfishes(8)
         else 
             running = false
         end
     end
     puts board.to_s
-    #exit if not board.solved
-    solved += 1 if board.solved
+    puts "Expected #{solutions[line-1]}"
+    puts "Got      #{board.solution}"
+    if board.solved
+        solved += 1
+        if board.solution != solutions[line-1]
+            puts "Houston we have a problem …"
+            exit
+        end
+    end
     total += 1
 end
 
