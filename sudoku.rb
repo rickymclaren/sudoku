@@ -299,22 +299,22 @@ class Board
                 rows << cols if cols.length >= 3 && cols.length <= (scale+2)
             end
             
-            # If we have at least scale rows then try to find a combination of scale rows that share the same scale columns
-            # First get all combinations of scale rows that contain our possible
+            # If we have at least {scale} rows then try to find a combination of scale rows that share the same {scale} columns
+            # First get all combinations of (scale) rows that contain our possible
 
             combos = []
             if rows.size >= scale
                 rows.map {|row| row[1]}.combination(scale) { |x| combos << x }
             end
             
-            # Now check if the scale rows share the same scale cols
+            # Now check if the (scale) rows share the same (scale) cols
             combos.each do |combo|
                 scale_rows = rows.select {|row| combo.include? row[1] }
                 cols = []
                 scale_rows.each {|t| cols += t[2..-1]}
                 cols.uniq!
 
-                if cols.size == scale
+                if scale_rows.size == scale && cols.size == scale
                     # Remove possibles from all the other rows
                     row_numbers = scale_rows.map {|t| t[1] }
                     cols.each do |col|
@@ -325,7 +325,7 @@ class Board
                         end
                     end
                     if found
-                        puts "#{type} #{possible} in rows #{scale_rows.inspect} cols #{cols.inspect}"
+                        puts "#{type} #{possible} in rows #{row_numbers.inspect} cols #{cols.inspect}"
                         return true
                     end
                 end
@@ -341,24 +341,24 @@ class Board
             cols = []        
             (0..8).each do |col|
                 rows = [possible, col] + cells_by_col(col).select { |cell| cell.has? possible }.map { |cell| cell.row }
-                cols << rows if rows.length == 4 || rows.length == 5
+                cols << rows if rows.length >= 3 && rows.length <= (scale+2)
             end
             
-            # If we have at least scale cols then try to find a combination of scale cols that share the same scale rows
-            # First get all combinations of scale cols that contain our possible
+            # If we have at least {scale} cols then try to find a combination of {scale} cols that share the same {scale} rows
+            # First get all combinations of {scale} cols that contain our possible
 
             combos = []
             if cols.size >= scale
                 cols.map {|col| col[1]}.combination(4) { |x| combos << x }
             end
             
-            # Now check if the scale cols share the same scale rows
+            # Now check if the {scale} cols share the same {scale} rows
             combos.each do |combo|
                 scale_cols = cols.select {|col| combo.include? col[1] }
                 rows = []
                 scale_cols.each {|t| rows += t[2..-1]}
                 rows.uniq!
-                if rows.size == scale
+                if scale_cols.size == scale && rows.size == scale
                     # Remove possibles from all the other cols
                     col_numbers = scale_cols.map {|t| t[1] }
                     rows.each do |row|
@@ -369,7 +369,7 @@ class Board
                         end
                     end
                     if found
-                        puts "#{type} #{possible} in cols #{scale_cols.inspect} rows #{rows.inspect}"
+                        puts "#{type} #{possible} in cols #{col_numbers.inspect} rows #{rows.inspect}"
                         return true
                     end
                 end
@@ -414,10 +414,6 @@ File.new("top95solutions.txt", "r").each do |data|
     end
 end
 
-solutions.each do |solution|
-    puts solution
-end
-
 line = 0
 File.new("top95.txt", "r").each do |data|
     exit if data.length < 81
@@ -432,18 +428,12 @@ File.new("top95.txt", "r").each do |data|
         elsif board.box_line_reduction
         elsif board.swordfishes(2)
         elsif board.swordfishes(3)
-#        elsif board.swordfishes(4)
-#        elsif board.swordfishes(5)
-#        elsif board.swordfishes(6)
-#        elsif board.swordfishes(7)
-#        elsif board.swordfishes(8)
+        elsif board.swordfishes(4)
         else 
             running = false
         end
     end
     puts board.to_s
-    puts "Expected #{solutions[line-1]}"
-    puts "Got      #{board.solution}"
     if board.solved
         solved += 1
         if board.solution != solutions[line-1]
