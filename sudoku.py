@@ -3,8 +3,6 @@ import sys
 import datetime
 import glob
 from xml.etree import ElementTree
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
 box_size = 70
 
@@ -36,10 +34,8 @@ class Cell (object):
         return False
     
     
-class Board (QWidget):
+class Board ():
     def __init__(self, data, parent=None):
-        QWidget.__init__(self, parent)
-        self.setGeometry(QRect(400, 100, box_size * 9, box_size * 9))
         self.cells = []
         for row in range(0,9):
             for col in range(0,9):
@@ -62,48 +58,6 @@ class Board (QWidget):
             print repr(data[row * 9: row * 9 + 9])
         print '=' * 60
 
-    def paintEvent(self, event):
-        painter = QPainter()
-        painter.begin(self)
-        
-        solvedFont = QFont('Helvetica', 14, QFont.Bold)
-        possiblesFont = QFont('Helvetica', 10, QFont.Normal)
-
-        # draw the grid
-        for y in range(0, 10):
-            if y % 3 == 0:
-                painter.setPen(QPen(Qt.black, 3))
-            else:
-                painter.setPen(QPen(Qt.black, 1))
-            painter.drawLine(0, y * box_size, box_size * 9, y * box_size)        
-        for x in range(0, 10):
-            if x % 3 == 0:
-                painter.setPen(QPen(Qt.black, 3))
-            else:
-                painter.setPen(QPen(Qt.black, 1))
-            painter.drawLine(x * box_size, 0, x * box_size, box_size * 9)        
-            
-        # draw the solved squares
-        painter.setFont(solvedFont)
-        for row in range(0, 9):
-            x = 0
-            for cell in self.get_row_text(row):
-                if cell != '0': painter.drawText((x + 0.5) * box_size, (row + 0.5) * box_size, cell)
-                x = x + 1
-            
-        # draw the possibles
-        painter.setFont(possiblesFont)
-        painter.setPen(QPen(Qt.gray))
-        for row in range(0, 9):
-            x = 0
-            for cell in self.get_row_text(row):
-                if cell == '0': 
-                    poss = self.get_cell(row, x).possibles
-                    painter.drawText(x * box_size + 4, row * box_size + 15, poss)
-                x = x + 1
-            
-        painter.end()
-        
     def get_cell(self, row, col):
         return self.cells[row * 9 + col]
         
@@ -499,7 +453,6 @@ class Board (QWidget):
         return True
             
 
-app = QApplication(sys.argv)
 board = Board(get_data())
 
 running = True
