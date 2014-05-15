@@ -464,11 +464,16 @@ for line in f:
     solutions.append(line.rstrip())
 f.close()
 
+problems = []
+f = open('top95.txt')
+for line in f:
+    problems.append(line.rstrip())
+f.close()
+
 index = 0
 solved = 0
-f = open("top95.txt")
-for line in f:
-    board = Board(line)
+for problem in problems:
+    board = Board(problem)
 
     running = True
     while running:
@@ -499,8 +504,6 @@ for line in f:
     else:            
         print ">>> BEATS ME >>>"
     index += 1
-
-f.close()
 
 print "Solved {0} of {1}".format(solved, index)
  

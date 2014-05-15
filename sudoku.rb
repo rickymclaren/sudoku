@@ -397,18 +397,12 @@ end
 line = 0
 solved=0
 total=0
-solutions = []
-solution = ""
 
-
-File.new("top95expected.txt", "r").each do |data|
-   solutions << solution
-end
-
+problems = File.readlines("top95.txt")
 solutions = File.readlines("top95expected.txt")
 
 line = 0
-File.new("top95.txt", "r").each do |data|
+problems.each do |data|
     exit if data.length < 81
     line += 1
     puts "=== Populating board #{line} ==="
