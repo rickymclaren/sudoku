@@ -459,16 +459,12 @@ class Board (object):
             return 'Not solved'
             
 solutions = []
-f = open('top95expected.txt')
-for line in f:
-    solutions.append(line.rstrip())
-f.close()
+with open('top95expected.txt') as f:
+    solutions = f.readlines()
 
 problems = []
-f = open('top95.txt')
-for line in f:
-    problems.append(line.rstrip())
-f.close()
+with open('top95.txt') as f:
+    problems = f.readlines()
 
 index = 0
 solved = 0
@@ -496,9 +492,11 @@ for problem in problems:
             
     if board.solved():
         print ">>> SOLVED >>>"
-        expected = solutions[index]
-        if board.solution() != expected:
+        expected = solutions[index].rstrip()
+        solution = board.solution()
+        if solution != expected:
             print "Houston we have a problem"
+            print "Expected \n[{0}] \ngot\n[{1}]".format(expected, solution)
             sys.exit()
         solved += 1
     else:            
