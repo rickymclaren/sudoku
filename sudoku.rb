@@ -400,19 +400,12 @@ total=0
 solutions = []
 solution = ""
 
-File.new("top95solutions.txt", "r").each do |data|
-    data.gsub!(/\s/, "")
-    data.gsub!(/\-/, "")
-    data.gsub!(/\|/, "")
-    data.gsub!(/\+/, "")
-    if data[/^[0-9]{9}$/]
-        solution << data
-        if solution.size == 81
-           solutions << solution
-           solution = ""
-        end
-    end
+
+File.new("top95expected.txt", "r").each do |data|
+   solutions << solution
 end
+
+solutions = File.readlines("top95expected.txt")
 
 line = 0
 File.new("top95.txt", "r").each do |data|
@@ -436,15 +429,19 @@ File.new("top95.txt", "r").each do |data|
     puts board.to_s
     if board.solved
         solved += 1
-        if board.solution != solutions[line-1]
-            puts "Houston we have a problem …"
+        expected = solutions[line-1].strip
+        if board.solution != expected
+            puts "Houston we have a problem … expected\n[#{expected}] \ngot\n[#{board.solution}]"
             exit
         end
+        puts ">>> SOLVED >>>"
+    else
+        puts ">>> BEATEN >>>"
     end
     total += 1
 end
 
-puts "Solved #{solved} of #{total} puzzles"
+puts ">>> Solved #{solved} of #{total} puzzles"
 
 
 

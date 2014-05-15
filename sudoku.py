@@ -2,12 +2,8 @@
 import sys
 import datetime
 import glob
+import re
 from xml.etree import ElementTree
-
-box_size = 70
-
-def get_data():
-    return '700200040400030907015040000000700000057000210000009000000080360503070002020006004'
 
 class Cell (object):
     def __init__(self, board, row, col):
@@ -34,8 +30,8 @@ class Cell (object):
         return False
     
     
-class Board ():
-    def __init__(self, data, parent=None):
+class Board (object):
+    def __init__(self, data):
         self.cells = []
         for row in range(0,9):
             for col in range(0,9):
@@ -43,7 +39,7 @@ class Board ():
         for row in range(0,9):
             for col in range(0,9):
                 value = data[row * 9 + col]
-                if value != '0':
+                if re.match('[1-9]', value):
                     self.solve(self.get_cell(row, col), value)
         self.print_out()
         
@@ -52,7 +48,7 @@ class Board ():
         data = []
         for c in self.cells:
             data.append(c.possibles)
-            
+
         print '=' * 60
         for row in range(0, 9):
             print repr(data[row * 9: row * 9 + 9])
@@ -451,32 +447,60 @@ class Board ():
                 return False
                 
         return True
+
+    def solution(self):
+        solution = ""
+        if self.solved:
+            for row in range(0, 9):
+                for col in range(0, 9):
+                    solution += self.get_cell(row, col).possibles
+            return solution
+        else:
+            return 'Not solved'
             
+solutions = []
+f = open('top95expected.txt')
+for line in f:
+    solutions.append(line.rstrip())
+f.close()
 
-board = Board(get_data())
+index = 0
+solved = 0
+f = open("top95.txt")
+for line in f:
+    board = Board(line)
 
-running = True
-while running:
-    if board.find_singles():
-        pass
-    elif board.find_naked_pairs():
-        pass
-    elif board.find_pointing_pairs():
-        pass
-    elif board.box_line_reduction():
-        pass
-    elif board.x_wing():
-        pass
-    elif board.swordfish():
-        pass
-    else:
-        running = False
+    running = True
+    while running:
+        if board.find_singles():
+            pass
+        elif board.find_naked_pairs():
+            pass
+        elif board.find_pointing_pairs():
+            pass
+        elif board.box_line_reduction():
+            pass
+        elif board.x_wing():
+            pass
+        elif board.swordfish():
+            pass
+        else:
+            running = False
 
-    board.print_out()
-        
-if board.solved():
-    print "=== SOLVED ==="
-else:            
-    board.show()
-    app.exec_()
+        board.print_out()
+            
+    if board.solved():
+        print ">>> SOLVED >>>"
+        expected = solutions[index]
+        if board.solution() != expected:
+            print "Houston we have a problem"
+            sys.exit()
+        solved += 1
+    else:            
+        print ">>> BEATS ME >>>"
+    index += 1
 
+f.close()
+
+print "Solved {0} of {1}".format(solved, index)
+ 
