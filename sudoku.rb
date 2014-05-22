@@ -401,11 +401,15 @@ total=0
 problems = File.readlines("top95.txt")
 solutions = File.readlines("top95expected.txt")
 
-line = 0
+results = ''
+index = 0
 problems.each do |data|
     exit if data.length < 81
-    line += 1
-    puts "=== Populating board #{line} ==="
+    index += 1
+    if ARGV[0] and (ARGV[0] != index.to_s)
+        next
+    end
+    puts "=== Populating board #{index} ==="
     board = Board.new(data)
     running = true
     while running
@@ -423,18 +427,22 @@ problems.each do |data|
     puts board.to_s
     if board.solved
         solved += 1
-        expected = solutions[line-1].strip
+        expected = solutions[index-1].strip
         if board.solution != expected
             puts "Houston we have a problem … expected\n[#{expected}] \ngot\n[#{board.solution}]"
             exit
         end
         puts ">>> SOLVED >>>"
+        results << 'S'
     else
         puts ">>> BEATEN >>>"
+        results << '.'
     end
     total += 1
+    results << "\n" if index % 10 == 0
 end
 
+puts results
 puts ">>> Solved #{solved} of #{total} puzzles"
 
 

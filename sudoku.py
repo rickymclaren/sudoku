@@ -23,7 +23,7 @@ class Cell (object):
             for value in str(values):
                 if value in self.possibles:
                     self.possibles = self.possibles.replace(value, '')
-                    print "{0}removed {1} from {2}:{3} => {4}".format(msg, value, self.row, self.col, self.possibles)
+                    #print "{0}removed {1} from {2}:{3} => {4}".format(msg, value, self.row, self.col, self.possibles)
                     if len(self.possibles) == 1:
                         self.board.solve(self, self.possibles)
                     return True
@@ -146,7 +146,7 @@ class Board (object):
             
     def find_singles(self):
         """Find unique possibles by row, col, and box"""
-        print "========= Singles ============"
+        #print "========= Singles ============"
         for row in range(0, 9):
             for col in range(0, 9):
                 cell = self.get_cell(row, col)
@@ -178,7 +178,7 @@ class Board (object):
 
     def find_naked_pairs(self):
         """If two cells have only the same two possibles then those possibles can be removed from the rest of the row, col, and box"""
-        print "========= Naked Pairs ============"
+        #print "========= Naked Pairs ============"
         for row in range(0, 9):
             cells = self.get_cells_by_row(row)
             twos = []
@@ -222,7 +222,7 @@ class Board (object):
 
     def find_pointing_pairs(self):
         """If a possible occurs only twice in a box and these are on a row/col then the possible can be removed from the rest of the row/col"""
-        print "========= Pointing pairs ============"
+        #print "========= Pointing pairs ============"
         found = False
         for box in range(0, 9):
             cells = self.get_cells_by_box_number(box)
@@ -271,7 +271,7 @@ class Board (object):
         """If a possible occurs in only one box of a row/col then it can be removed from the rest of the box.
         It is the reverse of pointing pairs
         """
-        print "========= Box Line Reduction ============"
+        #print "========= Box Line Reduction ============"
         found = False
         for row in range(0, 9):
             for possible in range(0,9):
@@ -308,7 +308,7 @@ class Board (object):
     def x_wing(self):
         """If two rows have a possible in the same two columns then the possible can be removed from other rows on the same columns
         """
-        print "========= X-Wing ============"
+        #print "========= X-Wing ============"
         found = False
         for possible in range(1,10):
             rows = []
@@ -380,7 +380,7 @@ class Board (object):
         """If a possible exists in the same 3 columns of 3 rows then the possible can be removed from other rows on the same columns
            Note: It doesn't need to be 3 - it could be 2.
         """
-        print "========= Swordfish ============"
+        #print "========= Swordfish ============"
         found = False
         for possible in range(1,10):
             rows = []
@@ -466,9 +466,14 @@ problems = []
 with open('top95.txt') as f:
     problems = f.readlines()
 
+results = ""
 index = 0
 solved = 0
 for problem in problems:
+    index += 1
+    if (len(sys.argv) == 2) and (sys.argv[1] != str(index)):
+        continue
+
     board = Board(problem)
 
     running = True
@@ -488,20 +493,24 @@ for problem in problems:
         else:
             running = False
 
-        board.print_out()
+    board.print_out()
             
     if board.solved():
         print ">>> SOLVED >>>"
-        expected = solutions[index].rstrip()
+        expected = solutions[index-1].rstrip()
         solution = board.solution()
         if solution != expected:
             print "Houston we have a problem"
             print "Expected \n[{0}] \ngot\n[{1}]".format(expected, solution)
             sys.exit()
         solved += 1
+        results += 'S'
     else:            
         print ">>> BEATS ME >>>"
-    index += 1
+        results += 'x'
+    if index % 10 == 0:
+        results += '\n'
 
+print results
 print "Solved {0} of {1}".format(solved, index)
  
