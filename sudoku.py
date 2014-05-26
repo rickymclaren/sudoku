@@ -99,34 +99,6 @@ class Board (object):
                     data.append('0')
         return "".join(data)
         
-    def get_other_possibles_by_row(self, row, col):
-        data = []
-        for cell in self.cells:
-            if cell.row == row:
-                if cell.col != col:
-                    if len(cell.possibles) > 1:
-                        data.append(cell.possibles)
-        return "".join(data)
-        
-    def get_other_possibles_by_col(self, row, col):
-        data = []
-        for cell in self.cells:
-            if cell.col == col:
-                if cell.row != row:
-                    if len(cell.possibles) > 1:
-                        data.append(cell.possibles)
-        return "".join(data)
-        
-    def get_other_possibles_by_box(self, row, col):
-        data = []
-        box = self.get_cell(row, col).box_number()
-        for cell in self.cells:
-            if cell.box_number() == box:
-                if cell.row != row or cell.col != col:
-                    if len(cell.possibles) > 1:
-                        data.append(cell.possibles)
-        return "".join(data)
-        
     def get_cells_by_row(self, row):
         cells = []
         for cell in self.cells:
@@ -158,32 +130,27 @@ class Board (object):
     def find_singles(self):
         """Find unique possibles by row, col, and box"""
         #print "========= Singles ============"
-        for row in range(0, 9):
-            for col in range(0, 9):
-                cell = self.get_cell(row, col)
-                # Unique by row
-                if len(cell.possibles) > 1:
-                    for value in cell.possibles:
-                        if not value in self.get_other_possibles_by_row(row, col):
-                            print "{0}:{1} unique by row => {2}".format(row, col, value)
-                            self.solve(cell, value)
-                            return True
-
-                # Unique by col
-                if len(cell.possibles) > 1:
-                    for value in cell.possibles:
-                        if not value in self.get_other_possibles_by_col(row, col):
-                            print "{0}:{1} unique by col => {2}".format(row, col, value)
-                            self.solve(cell, value)
-                            return True
-
-                # Unique by box
-                if len(cell.possibles) > 1:
-                    for value in cell.possibles:
-                        if not value in self.get_other_possibles_by_box(row, col):
-                            print "{0}:{1} unique by box => {2}".format(row, col, value)
-                            self.solve(cell, value)
-                            return True
+        for value in "123456789":
+            for row in range(9):
+                cells = filter(lambda x: x.has_possible(value), self.get_cells_by_row(row))
+                if len(cells) == 1:
+                    print "{0} unique by row => {1}".format(cells[0], value)
+                    self.solve(cells[0], value)
+                    return True
+                            
+            for col in range(9):
+                cells = filter(lambda x: x.has_possible(value), self.get_cells_by_col(col))
+                if len(cells) == 1:
+                    print "{0} unique by col => {1}".format(cells[0], value)
+                    self.solve(cells[0], value)
+                    return True
+                            
+            for box in range(9):
+                cells = filter(lambda x: x.has_possible(value), self.get_cells_by_box_number(box))
+                if len(cells) == 1:
+                    print "{0} unique by box => {1}".format(cells[0], value)
+                    self.solve(cells[0], value)
+                    return True
                             
         return False
 
