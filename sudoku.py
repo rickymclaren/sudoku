@@ -28,13 +28,14 @@ class Cell (object):
     def is_subset_of(self, values):
         return len(set(self.possibles) - set(values)) == 0
                 
-    def remove_possibles(self, values, msg = ""):
+    def remove_possibles(self, values, msg = None):
         found = False
         if len(self.possibles) > 1:
             for value in str(values):
                 if value in self.possibles:
                     self.possibles = self.possibles.replace(value, '')
-                    #print "{0}removed {1} from {2}:{3} => {4}".format(msg, value, self.row, self.col, self.possibles)
+                    if msg:
+                        print "{0}removed {1} from {2}:{3} => {4}".format(msg, value, self.row, self.col, self.possibles)
                     if len(self.possibles) == 1:
                         self.board.solve(self, self.possibles)
                     found = True
@@ -59,11 +60,18 @@ class Board (object):
         data = []
         for c in self.cells:
             data.append(c.possibles)
+        size = max(map(lambda x: len(x), data))
 
-        print '=' * 60
+        data = map(lambda x: x.ljust(size), data)
+
+        width = size * 9 + 9
+        print '=' * width
         for row in range(0, 9):
-            print repr(data[row * 9: row * 9 + 9])
-        print '=' * 60
+            #print repr(data[row * 9: row * 9 + 9])
+            print "|".join(data[row * 9: row * 9 + 9])
+            if row in [2,5]:
+                print '-' * width
+        print '=' * width
 
     def get_cell(self, row, col):
         return self.cells[row * 9 + col]
@@ -134,21 +142,21 @@ class Board (object):
             for row in range(9):
                 cells = filter(lambda x: x.has_possible(value), self.get_cells_by_row(row))
                 if len(cells) == 1:
-                    print "{0} unique by row => {1}".format(cells[0], value)
+                    print "Single {0} in row {1}".format(value, row)
                     self.solve(cells[0], value)
                     return True
                             
             for col in range(9):
                 cells = filter(lambda x: x.has_possible(value), self.get_cells_by_col(col))
                 if len(cells) == 1:
-                    print "{0} unique by col => {1}".format(cells[0], value)
+                    print "Single {0} in col {1}".format(value, col)
                     self.solve(cells[0], value)
                     return True
                             
             for box in range(9):
                 cells = filter(lambda x: x.has_possible(value), self.get_cells_by_box_number(box))
                 if len(cells) == 1:
-                    print "{0} unique by box => {1}".format(cells[0], value)
+                    print "Single {0} in box {1}".format(value, box)
                     self.solve(cells[0], value)
                     return True
                             
@@ -200,48 +208,30 @@ class Board (object):
         """If a possible occurs only twice in a box and these are on a row/col then the possible can be removed from the rest of the row/col"""
         #print "========= Pointing pairs ============"
         found = False
-        for box in range(0, 9):
-            cells = self.get_cells_by_box_number(box)
-            for possible in range(0,9):
-                pair = []
-                for cell in cells:
-                    if cell.has_possible(possible):
-                        pair.append(cell)
-                if len(pair) == 2:
-                    if pair[0].row == pair[1].row:
-                        row = pair[0].row
-                        for cell in self.get_cells_by_row(row):
-                            if cell != pair[0] and cell != pair[1]:
-                                msg = "box {0} has pointing pair {1} in row {2}: ".format(box, possible, row)
-                                if cell.remove_possibles(possible):
-                                    found = True
+        for box in range(9):
+            for value in "123456789":
+                msg = "Pointing pair {0} in box {1} ".format(value, box)
+                matches = filter(lambda x: x.has_possible(value), self.get_cells_by_box_number(box))
+                cols = list(set(map(lambda x: x.col, matches)))
+                rows = list(set(map(lambda x: x.row, matches)))
+                if len(matches) in [2,3]:
+                    if len(cols) == 1:
+                        cells = set(self.get_cells_by_col(cols[0])) - set(matches)
+                        for cell in cells:
+                            if cell.remove_possibles(value, msg):
+                                found = True
+                        if found:
+                            return True
 
-                    if pair[0].col == pair[1].col:
-                        col = pair[0].col
-                        for cell in self.get_cells_by_col(col):
-                            if cell != pair[0] and cell != pair[1]:
-                                msg = "box {0} has pointing pair {1} in col {2}: ".format(box, possible, col)
-                                if cell.remove_possibles(possible, msg):
-                                    found = True
-                            
-                if len(pair) == 3:
-                    if pair[0].row == pair[1].row and pair[1].row == pair[2].row:
-                        row = pair[0].row
-                        for cell in self.get_cells_by_row(row):
-                            if cell != pair[0] and cell != pair[1] and cell != pair[2]:
-                                msg = "box {0} has pointing triple {1} in row {2}: ".format(box, possible, row)
-                                if cell.remove_possibles(possible, msg):
-                                    found = True
+                    if len(rows) == 1:
+                        cells = set(self.get_cells_by_row(rows[0])) - set(matches)
+                        for cell in cells:
+                            if cell.remove_possibles(value, msg):
+                                found = True
+                        if found:
+                            return True
 
-                    if pair[0].col == pair[1].col and pair[1].col == pair[2].col:
-                        col = pair[0].col
-                        for cell in self.get_cells_by_col(col):
-                            if cell != pair[0] and cell != pair[1] and cell != pair[2]:
-                                msg = "box {0} has pointing triple {1} in col {2}: ".format(box, possible, col)
-                                if cell.remove_possibles(possible, msg):
-                                    found = True
-                            
-        return found
+        return False
 
     def box_line_reduction(self):
         """If a possible occurs in only one box of a row/col then it can be removed from the rest of the box.
@@ -469,7 +459,7 @@ for problem in problems:
         else:
             running = False
 
-    board.print_out()
+        board.print_out()
             
     if board.solved():
         print ">>> SOLVED >>>"

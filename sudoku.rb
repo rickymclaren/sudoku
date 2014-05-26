@@ -423,6 +423,7 @@ problems.each do |data|
         else 
             running = false
         end
+        puts board.to_s
     end
     puts board.to_s
     if board.solved
