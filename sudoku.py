@@ -3,7 +3,7 @@ import sys
 import datetime
 import glob
 import re
-from xml.etree import ElementTree
+import itertools
 
 class Cell (object):
     def __init__(self, board, row, col):
@@ -11,14 +11,25 @@ class Cell (object):
         self.row = row
         self.col = col
         self.possibles = '123456789'
-            
+
+    def __str__(self):
+        return "[Cell:{0}:{1}:{2}]".format(self.row, self.col, self.possibles)
+
+    def __repr__(self):
+        # List uses __repr__ to print list contents
+        return self.__str__()
+
     def box_number(self):
         return (self.row / 3) * 3 + (self.col / 3) 
 
     def has_possible(self, value):
         return len(self.possibles) > 1 and str(value) in self.possibles
+
+    def is_subset_of(self, values):
+        return len(set(self.possibles) - set(values)) == 0
                 
     def remove_possibles(self, values, msg = ""):
+        found = False
         if len(self.possibles) > 1:
             for value in str(values):
                 if value in self.possibles:
@@ -26,8 +37,8 @@ class Cell (object):
                     #print "{0}removed {1} from {2}:{3} => {4}".format(msg, value, self.row, self.col, self.possibles)
                     if len(self.possibles) == 1:
                         self.board.solve(self, self.possibles)
-                    return True
-        return False
+                    found = True
+        return found
     
     
 class Board (object):
@@ -176,48 +187,46 @@ class Board (object):
                             
         return False
 
-    def find_naked_pairs(self):
-        """If two cells have only the same two possibles then those possibles can be removed from the rest of the row, col, and box"""
-        #print "========= Naked Pairs ============"
-        for row in range(0, 9):
-            cells = self.get_cells_by_row(row)
-            twos = []
-            for cell in cells:
-                if len(cell.possibles) == 2:
-                    twos.append(cell)
-            if len(twos) == 2 and twos[0].possibles == twos[1].possibles:
-                msg = "row {0} has naked pair {1}: ".format(row, twos[0].possibles)
+    def possibles(self, cells):
+        """ Return a list of all the unique outstanding possibles for a set of cells """
+        possibles = map(lambda x: x.possibles if len(x.possibles) > 1 else "", cells)
+        possibles = set("".join(possibles))
+        return sorted(possibles)
+
+    def combinations(self, possibles):
+        """ all combinations of possibles from pairs to length - 1 """
+        result = []
+        for length in range(2,len(possibles)):
+            result.extend(itertools.combinations(possibles, length))
+        return result
+
+    def naked_cells(self, cells):
+        possibles = self.possibles(cells)
+        combinations = self.combinations(possibles)
+        for combo in combinations:
+            matches = filter(lambda x: x.is_subset_of(combo), cells)
+            if (len(combo) == len(matches)):
+                found = False
                 for cell in cells:
-                    if cell.possibles != twos[0].possibles:
-                        if cell.remove_possibles(twos[0].possibles, msg):
-                            return True
-                            
-        for col in range(0, 9):
-            cells = self.get_cells_by_col(col)
-            twos = []
-            for cell in cells:
-                if len(cell.possibles) == 2:
-                    twos.append(cell)
-            if len(twos) == 2 and twos[0].possibles == twos[1].possibles:
-                msg = "col {0} has naked pair {1}: ".format(col, twos[0].possibles)
-                for cell in cells:
-                    if cell.possibles != twos[0].possibles:
-                        if cell.remove_possibles(twos[0].possibles, msg):
-                            return True
-                            
-        for box in range(0, 9):
-            cells = self.get_cells_by_box_number(box)
-            twos = []
-            for cell in cells:
-                if len(cell.possibles) == 2:
-                    twos.append(cell)
-            if len(twos) == 2 and twos[0].possibles == twos[1].possibles:
-                msg = "box {0} has naked pair {1}: ".format(box, twos[0].possibles)
-                for cell in cells:
-                    if cell.possibles != twos[0].possibles:
-                        if cell.remove_possibles(twos[0].possibles, msg):
-                            return True
-                            
+                    if not cell in matches:
+                        if cell.remove_possibles(combo):
+                            found = True
+                if found:
+                    print "Naked {0} in {1}".format(combo, matches)
+                    return True
+
+        return False
+
+    def nakeds(self):
+        for row in range(9):
+            if self.naked_cells(self.get_cells_by_row(row)):
+                return True
+        for col in range(9):
+            if self.naked_cells(self.get_cells_by_col(col)):
+                return True
+        for box in range(9):
+            if self.naked_cells(self.get_cells_by_box_number(box)):
+                return True
         return False
 
     def find_pointing_pairs(self):
@@ -480,7 +489,7 @@ for problem in problems:
     while running:
         if board.find_singles():
             pass
-        elif board.find_naked_pairs():
+        elif board.nakeds():
             pass
         elif board.find_pointing_pairs():
             pass
@@ -507,7 +516,7 @@ for problem in problems:
         results += 'S'
     else:            
         print ">>> BEATS ME >>>"
-        results += 'x'
+        results += '.'
     if index % 10 == 0:
         results += '\n'
 
