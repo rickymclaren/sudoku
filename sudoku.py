@@ -10,6 +10,7 @@ class Cell (object):
         self.board = board
         self.row = row
         self.col = col
+        self.box = (row / 3) * 3 + (col / 3) 
         self.possibles = '123456789'
 
     def __str__(self):
@@ -20,7 +21,7 @@ class Cell (object):
         return self.__str__()
 
     def box_number(self):
-        return (self.row / 3) * 3 + (self.col / 3) 
+        return self.box
 
     def has_possible(self, value):
         return len(self.possibles) > 1 and str(value) in self.possibles
@@ -239,37 +240,32 @@ class Board (object):
         """
         #print "========= Box Line Reduction ============"
         found = False
-        for row in range(0, 9):
-            for possible in range(0,9):
-                boxes = []
-                for cell in self.get_cells_by_row(row):
-                    if cell.has_possible(possible):
-                        box = cell.box_number()
-                        if not box in boxes:
-                            boxes.append(box)
+        for value in "123456789":
+            for row in range(9):
+                msg = "Box Line Reduction {0} in row {1} ".format(value, row)
+                matches = filter(lambda x: x.has_possible(value), self.get_cells_by_row(row))
+                boxes = list(set(map(lambda x: x.box, matches)))
                 if len(boxes) == 1:
-                    for cell in self.get_cells_by_box_number(boxes[0]):
-                        if cell.row != row:
-                            msg = "Box line reduction in box {0} row {1} for {2}: ".format(boxes[0], row, possible) 
-                            if cell.remove_possibles(possible, msg):
-                                found = True
-                            
-        for col in range(0, 9):
-            for possible in range(0,9):
-                boxes = []
-                for cell in self.get_cells_by_col(row):
-                    if cell.has_possible(possible):
-                        box = cell.box_number()
-                        if not box in boxes:
-                            boxes.append(box)
+                    cells = set(self.get_cells_by_box_number(boxes[0])) - set(matches)
+                    for cell in cells:
+                        if cell.remove_possibles(value, msg):
+                            found = True
+                    if found:
+                        return True
+
+            for col in range(9):
+                msg = "Box Line Reduction {0} in col {1} ".format(value, col)
+                matches = filter(lambda x: x.has_possible(value), self.get_cells_by_col(row))
+                boxes = list(set(map(lambda x: x.box, matches)))
                 if len(boxes) == 1:
-                    for cell in self.get_cells_by_box_number(boxes[0]):
-                        if cell.col != col:
-                            msg = "Box line reduction in box {0} col {1} for {2}: ".format(boxes[0], col, possible) 
-                            if cell.remove_possibles(possible):
-                                found = True
-                            
-        return found
+                    cells = set(self.get_cells_by_box_number(boxes[0])) - set(matches)
+                    for cell in cells:
+                        if cell.remove_possibles(value, msg):
+                            found = True
+                    if found:
+                        return True
+
+        return False
 
     def x_wing(self):
         """If two rows have a possible in the same two columns then the possible can be removed from other rows on the same columns
