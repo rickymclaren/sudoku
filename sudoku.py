@@ -206,7 +206,9 @@ class Board (object):
         return False
 
     def find_pointing_pairs(self):
-        """If a possible occurs only twice in a box and these are on a row/col then the possible can be removed from the rest of the row/col"""
+        """If a possible occurs only twice (or thrice) in a box and these are on a row/col then the possible
+         can be removed from the rest of the row/col
+        """
         #print "========= Pointing pairs ============"
         found = False
         for box in range(9):
@@ -255,7 +257,7 @@ class Board (object):
 
             for col in range(9):
                 msg = "Box Line Reduction {0} in col {1} ".format(value, col)
-                matches = filter(lambda x: x.has_possible(value), self.get_cells_by_col(row))
+                matches = filter(lambda x: x.has_possible(value), self.get_cells_by_col(col))
                 boxes = list(set(map(lambda x: x.box, matches)))
                 if len(boxes) == 1:
                     cells = set(self.get_cells_by_box_number(boxes[0])) - set(matches)
