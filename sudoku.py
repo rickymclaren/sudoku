@@ -385,18 +385,28 @@ class Board (object):
 
         print "### Analysis ###"
         for possible in range(1, 10):
+            rows = []
+            cols_set = set()
             for row in range(0, 9):
                 cells = filter(lambda x: x.has_possible(possible), self.get_cells_by_row(row))
                 if len(cells) > 0:
+                    rows.append(row)
                     cols = map(lambda x: x.col, cells)
+                    cols_set |= set(cols)
                     print "{0}:row {1}:cols {2}".format(possible, row, cols)
+            print "{0} rows found with {1} cols".format(len(rows), len(cols_set))
             print "---"
 
+            cols = []
+            rows_set = set()
             for col in range(0, 9):
                 cells = filter(lambda x: x.has_possible(possible), self.get_cells_by_col(col))
                 if len(cells) > 0:
+                    cols.append(col)
                     rows = map(lambda x: x.row, cells)
+                    rows_set |= set(rows)
                     print "{0}:col {1}:rows {2}".format(possible, col, rows)
+            print "{0} cols found with {1} rows".format(len(cols), len(rows_set))
             print "---"
 
 
