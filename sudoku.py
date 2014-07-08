@@ -10,7 +10,7 @@ class Cell (object):
         self.board = board
         self.row = row
         self.col = col
-        self.box = (row / 3) * 3 + (col / 3) 
+        self.box = (row / 3) * 3 + (col / 3)
         self.possibles = '123456789'
 
     def __str__(self):
@@ -28,7 +28,7 @@ class Cell (object):
 
     def is_subset_of(self, values):
         return len(set(self.possibles) - set(values)) == 0
-                
+
     def remove_possibles(self, values, msg = None):
         found = False
         if len(self.possibles) > 1:
@@ -41,8 +41,8 @@ class Cell (object):
                         self.board.solve(self, self.possibles)
                     found = True
         return found
-    
-    
+
+
 class Board (object):
     def __init__(self, data):
         self.cells = []
@@ -55,8 +55,8 @@ class Board (object):
                 if re.match('[1-9]', value):
                     self.solve(self.get_cell(row, col), value)
         self.print_out()
-        
-                
+
+
     def print_out(self):
         data = []
         for c in self.cells:
@@ -76,7 +76,7 @@ class Board (object):
 
     def get_cell(self, row, col):
         return self.cells[row * 9 + col]
-        
+
     def get_row_text(self, row):
         row_data = []
         for cell in self.cells:
@@ -86,7 +86,7 @@ class Board (object):
                 else:
                     row_data.append('0')
         return "".join(row_data)
-        
+
     def get_col_text(self, col):
         col_data = []
         for cell in self.cells:
@@ -96,7 +96,7 @@ class Board (object):
                 else:
                     col_data.append('0')
         return "".join(col_data)
-        
+
     def get_box_text(self, row, col):
         data = []
         box = self.get_cell(row, col).box_number()
@@ -107,7 +107,7 @@ class Board (object):
                 else:
                     data.append('0')
         return "".join(data)
-        
+
     def get_cells_by_row(self, row):
         cells = []
         for cell in self.cells:
@@ -134,8 +134,8 @@ class Board (object):
         cell.possibles = value
         for c in self.cells:
             if c.row == cell.row or c.col == cell.col or c.box_number() == cell.box_number():
-                c.remove_possibles(value) 
-            
+                c.remove_possibles(value)
+
     def find_singles(self):
         """Find unique possibles by row, col, and box"""
         #print "========= Singles ============"
@@ -146,21 +146,21 @@ class Board (object):
                     print "Single {0} in row {1}".format(value, row)
                     self.solve(cells[0], value)
                     return True
-                            
+
             for col in range(9):
                 cells = filter(lambda x: x.has_possible(value), self.get_cells_by_col(col))
                 if len(cells) == 1:
                     print "Single {0} in col {1}".format(value, col)
                     self.solve(cells[0], value)
                     return True
-                            
+
             for box in range(9):
                 cells = filter(lambda x: x.has_possible(value), self.get_cells_by_box_number(box))
                 if len(cells) == 1:
                     print "Single {0} in box {1}".format(value, box)
                     self.solve(cells[0], value)
                     return True
-                            
+
         return False
 
     def possibles(self, cells):
@@ -283,8 +283,8 @@ class Board (object):
                         cols.append(cell.col)
                 if len(cols) == 4:
                     rows.append(cols)
-    
-            while len(rows) > 1:            
+
+            while len(rows) > 1:
                 for i in range(1, len(rows)):
                     first = str(rows[0][2]) + str(rows[0][3])
                     second = str(rows[i][2]) + str(rows[i][3])
@@ -293,7 +293,7 @@ class Board (object):
                         col_two = rows[0][3]
                         row_one = rows[0][1]
                         row_two = rows[i][1]
-                        msg = "X wing for {0} in rows {1} and {2}: ".format(possible, row_one, row_two) 
+                        msg = "X wing for {0} in rows {1} and {2}: ".format(possible, row_one, row_two)
                         for cells in self.get_cells_by_col(col_one):
                             if cell.row != row_one and cell.row != row_two:
                                 if cell.remove_possibles(possible, msg):
@@ -305,7 +305,7 @@ class Board (object):
                         rows.pop(i)
                         break
                 rows.pop(0)
-                            
+
         for possible in range(1,10):
             cols = []
             for col in range(0, 9):
@@ -315,8 +315,8 @@ class Board (object):
                         rows.append(cell.row)
                 if len(rows) == 4:
                     cols.append(rows)
-    
-            while len(cols) > 1:            
+
+            while len(cols) > 1:
                 for i in range(1, len(cols)):
                     first = str(cols[0][2]) + str(cols[0][3])
                     second = str(cols[i][2]) + str(cols[i][3])
@@ -325,7 +325,7 @@ class Board (object):
                         row_two = cols[0][3]
                         col_one = cols[0][1]
                         col_two = cols[i][1]
-                        msg = "X wing for {0} in cols {1} and {2}".format(possible, col_one, col_two) 
+                        msg = "X wing for {0} in cols {1} and {2}".format(possible, col_one, col_two)
                         for cells in self.get_cells_by_row(row_one):
                             if cell.col != col_one and cell.col != col_two:
                                 if cell.remove_possibles(possible, msg):
@@ -337,7 +337,7 @@ class Board (object):
                         cols.pop(i)
                         break
                 cols.pop(0)
-                            
+
         return found
 
     def swordfish(self):
@@ -355,7 +355,7 @@ class Board (object):
                         cols.append(cell.col)
                 if len(cols) == 4 or len(cols) == 5:
                     rows.append(cols)
-            
+
             # for rows with 3 cols check if there are 2 other rows that are in those cols
             for row in range(0, len(rows)):
                 if len(rows[row]) == 5:   # 3 cols
@@ -364,7 +364,7 @@ class Board (object):
                     for match in range(0, len(rows)):
                         if match != row:
                             is_match = True
-                            for col in rows[match][2:]: 
+                            for col in rows[match][2:]:
                                 if not col in cols:
                                     is_match = False
                             if is_match:
@@ -377,12 +377,31 @@ class Board (object):
                                 if not cell.row in triple_rows:
                                     if cell.remove_possibles(possible, msg):
                                         found = True
-                        
-            
+
+
         return found
 
+    def analyse(self):
+
+        print "### Analysis ###"
+        for possible in range(1, 10):
+            for row in range(0, 9):
+                cells = filter(lambda x: x.has_possible(possible), self.get_cells_by_row(row))
+                if len(cells) > 0:
+                    cols = map(lambda x: x.col, cells)
+                    print "{0}:row {1}:cols {2}".format(possible, row, cols)
+            print "---"
+
+            for col in range(0, 9):
+                cells = filter(lambda x: x.has_possible(possible), self.get_cells_by_col(col))
+                if len(cells) > 0:
+                    rows = map(lambda x: x.row, cells)
+                    print "{0}:col {1}:rows {2}".format(possible, col, rows)
+            print "---"
+
+
     def solved(self):
-    
+
         for row in range(0, 9):
             answers = []
             for cell in self.get_cells_by_row(row):
@@ -391,7 +410,7 @@ class Board (object):
             answer = "".join(answers)
             if answer != "123456789":
                 return False
-                
+
         for col in range(0, 9):
             answers = []
             for cell in self.get_cells_by_col(col):
@@ -400,7 +419,7 @@ class Board (object):
             answer = "".join(answers)
             if answer != "123456789":
                 return False
-                
+
         for box in range(0, 9):
             answers = []
             for cell in self.get_cells_by_box_number(box):
@@ -409,7 +428,7 @@ class Board (object):
             answer = "".join(answers)
             if answer != "123456789":
                 return False
-                
+
         return True
 
     def solution(self):
@@ -421,7 +440,7 @@ class Board (object):
             return solution
         else:
             return 'Not solved'
-            
+
 solutions = []
 with open('top95expected.txt') as f:
     solutions = f.readlines()
@@ -455,10 +474,11 @@ for problem in problems:
         elif board.swordfish():
             pass
         else:
+            board.analyse()
             running = False
 
         board.print_out()
-            
+
     if board.solved():
         print ">>> SOLVED >>>"
         expected = solutions[index-1].rstrip()
@@ -469,7 +489,7 @@ for problem in problems:
             sys.exit()
         solved += 1
         results += 'S'
-    else:            
+    else:
         print ">>> BEATS ME >>>"
         results += '.'
     if index % 10 == 0:
@@ -477,4 +497,3 @@ for problem in problems:
 
 print results
 print "Solved {0} of {1}".format(solved, index)
- 
