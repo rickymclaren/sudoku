@@ -401,6 +401,8 @@ total=0
 problems = File.readlines("top95.txt")
 solutions = File.readlines("top95expected.txt")
 
+problems = ['...9..6..4.....8..2.76..5.41.87..3.......3..........4..9...7..1..5..2....3.5.6...']
+
 results = ''
 index = 0
 problems.each do |data|
