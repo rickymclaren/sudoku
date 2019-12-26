@@ -15,12 +15,13 @@ var rows [9][9]*Cell
 var columns [9][9]*Cell
 var boxes [9][9]*Cell
 var all [27][9]*Cell
+var numbers string = "12345689"
 
 func setup() {
 	for i := 0; i < len(board); i++ {
 		row := i / 9
 		column := i % 9
-		board[i] = Cell{possibles: "123456789", row: row, column: column }
+		board[i] = Cell{possibles: numbers, row: row, column: column }
 	}
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
@@ -63,12 +64,16 @@ func printBoard() {
 	fmt.Println()
 }
 
+func singles_in_block(cells [9]*Cell) {
+	for _, cell := range cells {
+		fmt.Println(cell.row, cell.column)
+	}
+
+}
+
 func singles() {
 	for _, row := range rows {
-		for _, cell := range row {
-			fmt.Println(cell.row, cell.column)
-
-		}
+		singles_in_block(row)
 	}
 }
 
