@@ -91,7 +91,7 @@ func parse(s string) {
 func printb() {
 	for i, _ := range b {
 		if b[i].solved() {
-			fmt.Printf("%-9s", "    " + b[i].possibles)
+			fmt.Printf("%-9s", "    "+b[i].possibles)
 		} else {
 			fmt.Printf("%-9s", b[i].possibles)
 		}
