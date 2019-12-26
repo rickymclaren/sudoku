@@ -3,8 +3,8 @@ package main
 import "fmt"
 
 type Cell struct {
-	row 	int
-	column int
+	row       int
+	column    int
 	value     string
 	possibles string
 	solved    bool
@@ -19,7 +19,7 @@ func inCol(cell *Cell, col int) bool {
 }
 
 func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
-	result := []*Cell {}
+	result := []*Cell{}
 	for _, c := range cells {
 		if include(&c, v) {
 			result = append(result, &c)
@@ -29,7 +29,7 @@ func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
 }
 
 var b [81]Cell
-var rows = [][]*Cell {
+var rows = [][]*Cell{
 	{&b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6], &b[7], &b[8]},
 	{&b[9], &b[10], &b[11], &b[12], &b[13], &b[14], &b[15], &b[16], &b[17]},
 	{&b[18], &b[19], &b[20], &b[21], &b[22], &b[23], &b[24], &b[25], &b[26]},
@@ -40,7 +40,7 @@ var rows = [][]*Cell {
 	{&b[63], &b[64], &b[65], &b[66], &b[67], &b[68], &b[69], &b[70], &b[71]},
 	{&b[72], &b[73], &b[74], &b[75], &b[76], &b[77], &b[78], &b[79], &b[80]},
 }
-var columns = [][]*Cell {
+var columns = [][]*Cell{
 	{&b[0], &b[9], &b[18], &b[27], &b[36], &b[45], &b[54], &b[63], &b[72]},
 	{&b[1], &b[10], &b[19], &b[28], &b[37], &b[46], &b[55], &b[64], &b[73]},
 	{&b[2], &b[11], &b[20], &b[29], &b[38], &b[47], &b[56], &b[65], &b[74]},
@@ -51,7 +51,7 @@ var columns = [][]*Cell {
 	{&b[7], &b[16], &b[25], &b[34], &b[43], &b[52], &b[61], &b[70], &b[79]},
 	{&b[8], &b[17], &b[26], &b[35], &b[44], &b[53], &b[62], &b[71], &b[80]},
 }
-var boxes = [][]*Cell {
+var boxes = [][]*Cell{
 	{&b[0], &b[1], &b[2], &b[9], &b[10], &b[11], &b[18], &b[19], &b[20]},
 	{&b[3], &b[4], &b[5], &b[12], &b[13], &b[14], &b[21], &b[22], &b[23]},
 	{&b[6], &b[7], &b[8], &b[15], &b[16], &b[17], &b[24], &b[25], &b[26]},
@@ -68,7 +68,7 @@ func init() {
 	for i := 0; i < len(b); i++ {
 		row := i / 9
 		column := i % 9
-		b[i] = Cell{possibles: numbers, row: row, column: column }
+		b[i] = Cell{possibles: numbers, row: row, column: column}
 	}
 }
 
