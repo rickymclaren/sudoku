@@ -1,13 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Cell struct {
 	row       int
 	column    int
-	value     string
 	possibles string
-	solved    bool
+}
+
+func (c Cell) solved() bool {
+	return len(c.possibles) == 1
 }
 
 func inRow(cell *Cell, row int) bool {
@@ -76,18 +80,17 @@ func parse(s string) {
 	for i := 0; i < len(s); i++ {
 		c := string(s[i])
 		if c != "." {
-			b[i].value = c
-			b[i].solved = true
+			b[i].possibles = c
 		}
 	}
 }
 
 func printb() {
 	for i := 0; i < len(b); i++ {
-		if b[i].solved {
-			fmt.Print(b[i].value)
+		if b[i].solved() {
+			fmt.Printf("%-9s", "    " + b[i].possibles)
 		} else {
-			fmt.Print(".")
+			fmt.Printf("%-9s", b[i].possibles)
 		}
 
 		if i > 0 {
@@ -95,7 +98,7 @@ func printb() {
 			if j%9 == 0 {
 				fmt.Println()
 				if j == 27 || j == 54 {
-					fmt.Println("===|===|===")
+					fmt.Println("===========================|===========================|===========================")
 				}
 			} else if j%3 == 0 {
 				fmt.Print("|")
