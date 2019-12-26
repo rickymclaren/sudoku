@@ -10,24 +10,65 @@ type Cell struct {
 	solved    bool
 }
 
-var board [81]Cell
-var rows [9][9]*Cell
-var columns [9][9]*Cell
-var boxes [9][9]*Cell
-var all [27][9]*Cell
+func inRow(cell *Cell, row int) bool {
+	return cell.row == row
+}
+
+func inCol(cell *Cell, col int) bool {
+	return cell.column == col
+}
+
+func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
+	result := []*Cell {}
+	for _, c := range cells {
+		if include(&c, v) {
+			result = append(result, &c)
+		}
+	}
+	return result
+}
+
+var b [81]Cell
+var rows = [][]*Cell {
+	{&b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6], &b[7], &b[8]},
+	{&b[9], &b[10], &b[11], &b[12], &b[13], &b[14], &b[15], &b[16], &b[17]},
+	{&b[18], &b[19], &b[20], &b[21], &b[22], &b[23], &b[24], &b[25], &b[26]},
+	{&b[27], &b[28], &b[29], &b[30], &b[31], &b[32], &b[33], &b[34], &b[35]},
+	{&b[36], &b[37], &b[38], &b[39], &b[40], &b[41], &b[42], &b[43], &b[44]},
+	{&b[45], &b[46], &b[47], &b[48], &b[49], &b[50], &b[51], &b[52], &b[53]},
+	{&b[54], &b[55], &b[56], &b[57], &b[58], &b[59], &b[60], &b[61], &b[62]},
+	{&b[63], &b[64], &b[65], &b[66], &b[67], &b[68], &b[69], &b[70], &b[71]},
+	{&b[72], &b[73], &b[74], &b[75], &b[76], &b[77], &b[78], &b[79], &b[80]},
+}
+var columns = [][]*Cell {
+	{&b[0], &b[9], &b[18], &b[27], &b[36], &b[45], &b[54], &b[63], &b[72]},
+	{&b[1], &b[10], &b[19], &b[28], &b[37], &b[46], &b[55], &b[64], &b[73]},
+	{&b[2], &b[11], &b[20], &b[29], &b[38], &b[47], &b[56], &b[65], &b[74]},
+	{&b[3], &b[12], &b[21], &b[30], &b[39], &b[48], &b[57], &b[66], &b[75]},
+	{&b[4], &b[13], &b[22], &b[31], &b[40], &b[49], &b[58], &b[67], &b[76]},
+	{&b[5], &b[14], &b[23], &b[32], &b[41], &b[50], &b[59], &b[68], &b[77]},
+	{&b[6], &b[15], &b[24], &b[33], &b[42], &b[51], &b[60], &b[69], &b[78]},
+	{&b[7], &b[16], &b[25], &b[34], &b[43], &b[52], &b[61], &b[70], &b[79]},
+	{&b[8], &b[17], &b[26], &b[35], &b[44], &b[53], &b[62], &b[71], &b[80]},
+}
+var boxes = [][]*Cell {
+	{&b[0], &b[1], &b[2], &b[9], &b[10], &b[11], &b[18], &b[19], &b[20]},
+	{&b[3], &b[4], &b[5], &b[12], &b[13], &b[14], &b[21], &b[22], &b[23]},
+	{&b[6], &b[7], &b[8], &b[15], &b[16], &b[17], &b[24], &b[25], &b[26]},
+	{&b[27], &b[28], &b[29], &b[36], &b[37], &b[38], &b[45], &b[46], &b[47]},
+	{&b[30], &b[31], &b[32], &b[39], &b[40], &b[41], &b[48], &b[49], &b[50]},
+	{&b[33], &b[34], &b[35], &b[42], &b[43], &b[44], &b[51], &b[52], &b[53]},
+	{&b[54], &b[55], &b[56], &b[63], &b[64], &b[65], &b[72], &b[73], &b[74]},
+	{&b[57], &b[58], &b[59], &b[66], &b[67], &b[68], &b[75], &b[76], &b[77]},
+	{&b[60], &b[61], &b[62], &b[69], &b[70], &b[71], &b[78], &b[79], &b[80]},
+}
 var numbers string = "12345689"
 
-func setup() {
-	for i := 0; i < len(board); i++ {
+func init() {
+	for i := 0; i < len(b); i++ {
 		row := i / 9
 		column := i % 9
-		board[i] = Cell{possibles: numbers, row: row, column: column }
-	}
-	for row := 0; row < 9; row++ {
-		for column := 0; column < 9; column++ {
-			rows[row][column] = &board[row * 9 + column]
-			columns[column][row] = &board[column * 9 + row]
-		}
+		b[i] = Cell{possibles: numbers, row: row, column: column }
 	}
 }
 
@@ -35,16 +76,16 @@ func parse(s string) {
 	for i := 0; i < len(s); i++ {
 		c := string(s[i])
 		if c != "." {
-			board[i].value = c
-			board[i].solved = true
+			b[i].value = c
+			b[i].solved = true
 		}
 	}
 }
 
-func printBoard() {
-	for i := 0; i < len(board); i++ {
-		if board[i].solved {
-			fmt.Print(board[i].value)
+func printb() {
+	for i := 0; i < len(b); i++ {
+		if b[i].solved {
+			fmt.Print(b[i].value)
 		} else {
 			fmt.Print(".")
 		}
@@ -64,22 +105,7 @@ func printBoard() {
 	fmt.Println()
 }
 
-func singles_in_block(cells [9]*Cell) {
-	for _, cell := range cells {
-		fmt.Println(cell.row, cell.column)
-	}
-
-}
-
-func singles() {
-	for _, row := range rows {
-		singles_in_block(row)
-	}
-}
-
 func main() {
-	setup()
 	parse("..6..7..8..1.3....25......9..7.58...9.......1...14.7..8......16....9.4..4..5..8..")
-	printBoard()
-	singles()
+	printb()
 }
