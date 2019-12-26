@@ -10,17 +10,20 @@ type Cell struct {
 	possibles string
 }
 
+// --- Methods of Cell ---
 func (c Cell) solved() bool {
 	return len(c.possibles) == 1
 }
 
-func inRow(cell *Cell, row int) bool {
+func (cell Cell) inRow(row int) bool {
 	return cell.row == row
 }
 
-func inCol(cell *Cell, col int) bool {
+func (cell Cell) inCol(col int) bool {
 	return cell.column == col
 }
+
+// -----------------------
 
 func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
 	result := []*Cell{}
@@ -69,7 +72,7 @@ var boxes = [][]*Cell{
 var numbers string = "12345689"
 
 func init() {
-	for i := 0; i < len(b); i++ {
+	for i, _ := range b {
 		row := i / 9
 		column := i % 9
 		b[i] = Cell{possibles: numbers, row: row, column: column}
@@ -86,7 +89,7 @@ func parse(s string) {
 }
 
 func printb() {
-	for i := 0; i < len(b); i++ {
+	for i, _ := range b {
 		if b[i].solved() {
 			fmt.Printf("%-9s", "    " + b[i].possibles)
 		} else {
