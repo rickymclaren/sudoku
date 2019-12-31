@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Cell struct {
 	row       int
 	column    int
+	value			string
 	possibles string
 }
 
 // --- Methods of Cell ---
 func (c Cell) solved() bool {
-	return len(c.possibles) == 1
+	return len(c.possibles) == 0
 }
 
 func (cell Cell) inRow(row int) bool {
@@ -23,6 +25,15 @@ func (cell Cell) inCol(col int) bool {
 	return cell.column == col
 }
 
+func (cell *Cell) solve(value string) {
+	cell.value = value
+	cell.possibles = ""
+}
+
+func (cell Cell) has(c rune) bool {
+	return strings.Contains(cell.possibles, string(c))
+}
+
 // -----------------------
 
 func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
@@ -30,6 +41,16 @@ func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
 	for _, c := range cells {
 		if include(&c, v) {
 			result = append(result, &c)
+		}
+	}
+	return result
+}
+
+func filterRune(cells []*Cell, r rune) []*Cell {
+	result := []*Cell{}
+	for _, c := range cells {
+		if c.has(r) {
+			result = append(result, c)
 		}
 	}
 	return result
@@ -111,7 +132,29 @@ func printb() {
 	fmt.Println()
 }
 
+func singles() bool {
+	for index, row := range rows {
+		for _, c := range numbers {
+			matches := filterRune(row, c)
+			if len(matches) == 1 {
+				fmt.Println("Single %s in row %i", string(c), index)
+				matches[0].solve(string(c))
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func main() {
 	parse("..6..7..8..1.3....25......9..7.58...9.......1...14.7..8......16....9.4..4..5..8..")
 	printb()
+	for {
+		found := singles()
+
+		if ! found {
+			fmt.Println("Beats me !!!")
+			return
+		}
+	}
 }
