@@ -8,8 +8,8 @@ import (
 type Cell struct {
 	row       int
 	column    int
-	value			string
-	possibles string
+	value     string
+	possibles []string
 }
 
 // --- Methods of Cell ---
@@ -27,33 +27,89 @@ func (cell Cell) inCol(col int) bool {
 
 func (cell *Cell) solve(value string) {
 	cell.value = value
-	cell.possibles = ""
+	cell.possibles = make([]string, 0)
+	removeSolved()
 }
 
-func (cell Cell) has(c rune) bool {
-	return strings.Contains(cell.possibles, string(c))
+func (cell *Cell) has(s string) bool {
+	for _, possible := range cell.possibles {
+		if possible == s {
+			return true
+		}
+	}
+	return false
+}
+
+func (cell *Cell) remove(value string) bool {
+	if cell.solved() {
+		return false
+	}
+	newPossibles := []string{}
+	result := false
+	for _, possible := range cell.possibles {
+		if possible == value {
+			result = true
+		} else {
+			newPossibles = append(newPossibles, possible)
+		}
+	}
+	if len(newPossibles) == 1 {
+		cell.value = newPossibles[0]
+		cell.possibles = []string{}
+	} else if len(newPossibles) != len(cell.possibles){
+		// fmt.Printf("Setting cell %v %v from %v to %v\n", cell.row, cell.column, cell.possibles, newPossibles)
+		cell.possibles = newPossibles
+	}
+	return result
+}
+
+func (cell *Cell) removeValues(values []string) bool {
+	result := false
+	for _, value := range values {
+		if cell.remove(value) {
+			result = true
+		}
+	}
+	return result
 }
 
 // -----------------------
 
-func filter(cells []Cell, v int, include func(*Cell, int) bool) []*Cell {
+func filter(cells []*Cell, v int, include func(*Cell, int) bool) []*Cell {
 	result := []*Cell{}
 	for _, c := range cells {
-		if include(&c, v) {
-			result = append(result, &c)
+		if include(c, v) {
+			result = append(result, c)
 		}
 	}
 	return result
 }
 
-func filterRune(cells []*Cell, r rune) []*Cell {
+func filterHas(cells []*Cell, s string) []*Cell {
 	result := []*Cell{}
 	for _, c := range cells {
-		if c.has(r) {
+		if c.has(s) {
 			result = append(result, c)
 		}
 	}
 	return result
+}
+
+func filterCells(cells []*Cell, remove []*Cell) []*Cell {
+	result := []*Cell{}
+	for _, c := range cells {
+		doAppend := true
+		for _, r := range remove {
+			if r == c {
+				doAppend = false
+			}
+		}
+		if doAppend {
+			result = append(result, c)
+		}
+	}
+	return result
+
 }
 
 var b [81]Cell
@@ -90,8 +146,9 @@ var boxes = [][]*Cell{
 	{&b[57], &b[58], &b[59], &b[66], &b[67], &b[68], &b[75], &b[76], &b[77]},
 	{&b[60], &b[61], &b[62], &b[69], &b[70], &b[71], &b[78], &b[79], &b[80]},
 }
-var all = [][]*Cell{}
-var numbers string = "12345689"
+var blocks = [][]*Cell{}
+var numbers []string = strings.Split("123456789", "")
+var combinations = [][]string{}
 
 func init() {
 	for i, _ := range b {
@@ -100,31 +157,53 @@ func init() {
 		b[i] = Cell{possibles: numbers, row: row, column: column}
 	}
 	for _, row := range rows {
-		all = append(all, row)
+		blocks = append(blocks, row)
 	}
 	for _, col := range cols {
-		all = append(all, col)
+		blocks = append(blocks, col)
 	}
 	for _, box := range boxes {
-		all = append(all, box)
+		blocks = append(blocks, box)
 	}
+	combinations = makeCombinations(numbers)
+}
+
+func makeCombinations(elems []string) [][]string {
+	result := [][]string{}
+	n := len(elems)
+	for num := 0; num < (1 << uint(n)); num++ {
+		combination := []string{}
+		for ndx := 0; ndx < n; ndx++ {
+			// (is the bit "on" in this number?)
+			if num&(1<<uint(ndx)) != 0 {
+				// (then add it to the combination)
+				combination = append(combination, elems[ndx])
+			}
+		}
+		if len(combination) > 1 {
+			result = append(result, combination)
+		}
+	}
+	return result
 }
 
 func parse(s string) {
 	for i := 0; i < len(s); i++ {
 		c := string(s[i])
 		if c != "." {
-			b[i].possibles = c
+			b[i].value = c
+			b[i].possibles = make([]string, 0)
 		}
 	}
 }
 
 func printb() {
+	fmt.Println()
 	for i, _ := range b {
 		if b[i].solved() {
-			fmt.Printf("%-9s", "    "+b[i].possibles)
+			fmt.Printf("%-9s", "    "+b[i].value)
 		} else {
-			fmt.Printf("%-9s", b[i].possibles)
+			fmt.Printf("%-9s", strings.Join(b[i].possibles, ""))
 		}
 
 		if i > 0 {
@@ -142,13 +221,43 @@ func printb() {
 	fmt.Println()
 }
 
+func name(i int) string {
+	if i < 9 {
+		return fmt.Sprintf("Row %v", i+1)
+	} else if i < 18 {
+		return fmt.Sprintf("Col %v", i-9+1)
+	} else {
+		return fmt.Sprintf("Box %v", i-18+1)
+	}
+}
+
+func removeSolved() bool {
+	fmt.Println("=== Remove Solved")
+	result := false
+	for _, cells := range blocks {
+		solved := []string{}
+		for _, cell := range cells {
+			if cell.solved() {
+				solved = append(solved, cell.value)
+			}
+		}
+		for _, cell := range cells {
+			if cell.removeValues(solved) {
+				result = true
+			}
+		}
+	}
+	return result
+}
+
 func singles() bool {
-	for index, cells := range all {
+	fmt.Println("=== Singles")
+	for index, cells := range blocks {
 		for _, r := range numbers {
-			matches := filterRune(cells, r)
+			matches := filterHas(cells, r)
 			if len(matches) == 1 {
-				fmt.Println("Single %s in row %i", string(r), index)
-				matches[0].solve(string(r))
+				fmt.Printf("Single %s in %v\n", r, name(index))
+				matches[0].solve(r)
 				return true
 			}
 		}
@@ -156,13 +265,66 @@ func singles() bool {
 	return false
 }
 
+func filterForCombo(cells []*Cell, combo []string) []*Cell {
+	result := []*Cell{}
+	for _, cell := range cells {
+		if strings.Join(cell.possibles, "") == strings.Join(combo, "") {
+			result = append(result, cell)
+		}
+	}
+	return result
+}
+
+func removeCombo(block []*Cell, matches []*Cell, combo []string) bool {
+	others := filterCells(block, matches)
+	found := false
+	for _, cell := range others {
+		if cell.removeValues(combo) {
+			found = true
+		}
+	}
+	return found
+}
+
+func nakeds() bool {
+	fmt.Println("=== Nakeds")
+	for _, combo := range combinations {
+		for index, block := range blocks {
+			matches := filterForCombo(block, combo)
+			if len(matches) == len(combo) {
+				found := removeCombo(block, matches, combo)
+				if found {
+					fmt.Printf("Naked %v found in %s\n", combo, name(index))
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func main() {
-	parse("..6..7..8..1.3....25......9..7.58...9.......1...14.7..8......16....9.4..4..5..8..")
+	strategies := []func() bool{
+		singles,
+		nakeds,
+	}
+	parse(".36..54.9451..23..982...5616.7...98...346....5..287.1..4..7..963.....7....59468.2")
+	printb()
+	removeSolved()
 	printb()
 	for {
-		found := singles()
+		found := false
+		for _, strategy := range strategies {
+			if strategy() {
+				found = true
+			}
+			if found {
+				printb()
+				continue
+			}
+		}
 
-		if ! found {
+		if !found {
 			fmt.Println("Beats me !!!")
 			return
 		}
