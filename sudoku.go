@@ -68,7 +68,7 @@ var rows = [][]*Cell{
 	{&b[63], &b[64], &b[65], &b[66], &b[67], &b[68], &b[69], &b[70], &b[71]},
 	{&b[72], &b[73], &b[74], &b[75], &b[76], &b[77], &b[78], &b[79], &b[80]},
 }
-var columns = [][]*Cell{
+var cols = [][]*Cell{
 	{&b[0], &b[9], &b[18], &b[27], &b[36], &b[45], &b[54], &b[63], &b[72]},
 	{&b[1], &b[10], &b[19], &b[28], &b[37], &b[46], &b[55], &b[64], &b[73]},
 	{&b[2], &b[11], &b[20], &b[29], &b[38], &b[47], &b[56], &b[65], &b[74]},
@@ -90,6 +90,7 @@ var boxes = [][]*Cell{
 	{&b[57], &b[58], &b[59], &b[66], &b[67], &b[68], &b[75], &b[76], &b[77]},
 	{&b[60], &b[61], &b[62], &b[69], &b[70], &b[71], &b[78], &b[79], &b[80]},
 }
+var all = [][]*Cell{}
 var numbers string = "12345689"
 
 func init() {
@@ -97,6 +98,15 @@ func init() {
 		row := i / 9
 		column := i % 9
 		b[i] = Cell{possibles: numbers, row: row, column: column}
+	}
+	for _, row := range rows {
+		all = append(all, row)
+	}
+	for _, col := range cols {
+		all = append(all, col)
+	}
+	for _, box := range boxes {
+		all = append(all, box)
 	}
 }
 
@@ -133,12 +143,12 @@ func printb() {
 }
 
 func singles() bool {
-	for index, row := range rows {
-		for _, c := range numbers {
-			matches := filterRune(row, c)
+	for index, cells := range all {
+		for _, r := range numbers {
+			matches := filterRune(cells, r)
 			if len(matches) == 1 {
-				fmt.Println("Single %s in row %i", string(c), index)
-				matches[0].solve(string(c))
+				fmt.Println("Single %s in row %i", string(r), index)
+				matches[0].solve(string(r))
 				return true
 			}
 		}
