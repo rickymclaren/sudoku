@@ -351,6 +351,7 @@ func nakeds() bool {
 }
 
 func pointingPairs() bool {
+	fmt.Println("=== Pointing Pairs")
 	for i, box := range boxes {
 		cellInBox := func(cell *Cell) bool {
 			return cell.box == i
@@ -408,11 +409,72 @@ func pointingPairs() bool {
 	return false
 }
 
+func boxLineReduction() bool {
+	fmt.Println("=== Box Line Reduction")
+	for i, row := range rows {
+		cellInRow := func(cell *Cell) bool {
+			return cell.row == i
+		}
+		for _, number := range numbers {
+			matches := filterHasPossible(row, number)
+			if len(matches) == 0 {
+				continue
+			}
+			box := matches[0].box
+			if (len(matches) == 2 && matches[1].box == box) ||
+			 	 (len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
+				others := filterExclude(boxes[box], cellInRow)
+				found := false
+				for _, cell := range others {
+					if cell.remove(number) {
+						found = true
+					}
+				}
+				if found {
+					fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
+					return true
+				}
+
+			}
+		}
+	}
+
+	for i, col := range cols {
+		cellInCol := func(cell *Cell) bool {
+			return cell.column == i
+		}
+		for _, number := range numbers {
+			matches := filterHasPossible(col, number)
+			if len(matches) == 0 {
+				continue
+			}
+			box := matches[0].box
+			if (len(matches) == 2 && matches[1].box == box) ||
+			 	 (len(matches) == 3 && matches[1].box == box &&  matches[2].box == box) {
+				others := filterExclude(boxes[box], cellInCol)
+				found := false
+				for _, cell := range others {
+					if cell.remove(number) {
+						found = true
+					}
+				}
+				if found {
+					fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
+					return true
+				}
+
+			}
+		}
+	}
+	return false
+}
+
 func main() {
 	strategies := []func() bool{
 		singles,
 		nakeds,
 		pointingPairs,
+		boxLineReduction,
 	}
 	parse("...2...633....54.1..1..398........9....538....3........263..5..5.37....847...1...")
 	printb()
