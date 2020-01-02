@@ -412,7 +412,7 @@ func boxLineReduction() bool {
 			}
 			box := matches[0].box
 			if (len(matches) == 2 && matches[1].box == box) ||
-			 	 (len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
+				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
 				others := filterExclude(boxes[box], cellInRow)
 				if removeFromCells(others, []string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
@@ -434,7 +434,7 @@ func boxLineReduction() bool {
 			}
 			box := matches[0].box
 			if (len(matches) == 2 && matches[1].box == box) ||
-			 	 (len(matches) == 3 && matches[1].box == box &&  matches[2].box == box) {
+				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
 				others := filterExclude(boxes[box], cellInCol)
 				if removeFromCells(others, []string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
