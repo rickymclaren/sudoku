@@ -8,13 +8,12 @@ import (
 type Cell struct {
 	row       int
 	column    int
-	value     string
 	possibles []string
 }
 
 // --- Methods of Cell ---
 func (c Cell) solved() bool {
-	return len(c.possibles) == 0
+	return len(c.possibles) == 1
 }
 
 func (cell Cell) inRow(row int) bool {
@@ -26,8 +25,7 @@ func (cell Cell) inCol(col int) bool {
 }
 
 func (cell *Cell) solve(value string) {
-	cell.value = value
-	cell.possibles = make([]string, 0)
+	cell.possibles = []string{value}
 	removeSolved()
 }
 
@@ -53,10 +51,7 @@ func (cell *Cell) remove(value string) bool {
 			newPossibles = append(newPossibles, possible)
 		}
 	}
-	if len(newPossibles) == 1 {
-		cell.value = newPossibles[0]
-		cell.possibles = []string{}
-	} else if len(newPossibles) != len(cell.possibles){
+	if len(newPossibles) != len(cell.possibles){
 		// fmt.Printf("Setting cell %v %v from %v to %v\n", cell.row, cell.column, cell.possibles, newPossibles)
 		cell.possibles = newPossibles
 	}
@@ -191,8 +186,7 @@ func parse(s string) {
 	for i := 0; i < len(s); i++ {
 		c := string(s[i])
 		if c != "." {
-			b[i].value = c
-			b[i].possibles = make([]string, 0)
+			b[i].possibles = []string{c}
 		}
 	}
 }
@@ -201,9 +195,9 @@ func printb() {
 	fmt.Println()
 	for i, _ := range b {
 		if b[i].solved() {
-			fmt.Printf("%-9s", "    "+b[i].value)
+			fmt.Printf("%-10s", "    "+b[i].possibles[0])
 		} else {
-			fmt.Printf("%-9s", strings.Join(b[i].possibles, ""))
+			fmt.Printf("%-10s", strings.Join(b[i].possibles, ""))
 		}
 
 		if i > 0 {
@@ -211,7 +205,7 @@ func printb() {
 			if j%9 == 0 {
 				fmt.Println()
 				if j == 27 || j == 54 {
-					fmt.Println("===========================|===========================|===========================")
+					fmt.Println("==============================|==============================|==============================")
 				}
 			} else if j%3 == 0 {
 				fmt.Print("|")
@@ -221,33 +215,49 @@ func printb() {
 	fmt.Println()
 }
 
-func name(i int) string {
-	if i < 9 {
-		return fmt.Sprintf("Row %v", i+1)
-	} else if i < 18 {
-		return fmt.Sprintf("Col %v", i-9+1)
+func name(block int) string {
+	if block < 9 {
+		return fmt.Sprintf("Row %v", block+1)
+	} else if block < 18 {
+		return fmt.Sprintf("Col %v", block-9+1)
 	} else {
-		return fmt.Sprintf("Box %v", i-18+1)
+		return fmt.Sprintf("Box %v", block-18+1)
 	}
 }
 
-func removeSolved() bool {
+func signature(i int) string {
+	block := blocks[i]
+	result := name(i) + ":"
+	for _, cell := range block {
+		result += strings.Join(cell.possibles, "") + "|"
+	}
+	return result
+}
+
+func removeSolved() {
 	fmt.Println("=== Remove Solved")
-	result := false
-	for _, cells := range blocks {
-		solved := []string{}
-		for _, cell := range cells {
-			if cell.solved() {
-				solved = append(solved, cell.value)
+	found := true
+	for found {
+		found = false
+		for i, block := range blocks {
+			oldSignature := signature(i)
+			solved := []string{}
+			for _, cell := range block {
+				if cell.solved() {
+					solved = append(solved, cell.possibles[0])
+				}
 			}
-		}
-		for _, cell := range cells {
-			if cell.removeValues(solved) {
-				result = true
+			for _, cell := range block {
+				if cell.removeValues(solved) {
+					found = true
+				}
+			}
+			newSignature := signature(i)
+			if newSignature != oldSignature {
+				// fmt.Printf("%s -> %s\n", oldSignature, newSignature)
 			}
 		}
 	}
-	return result
 }
 
 func singles() bool {
@@ -303,6 +313,14 @@ func nakeds() bool {
 	return false
 }
 
+func boardSolved() bool {
+	solved := true
+	for _, cell := range b {
+		solved = solved && cell.solved()
+	}
+	return solved
+}
+
 func main() {
 	strategies := []func() bool{
 		singles,
@@ -312,11 +330,19 @@ func main() {
 	printb()
 	removeSolved()
 	printb()
+	if boardSolved() {
+		fmt.Println("Done !!!")
+		return
+	}
 	for {
 		found := false
 		for _, strategy := range strategies {
 			if strategy() {
 				found = true
+				if boardSolved() {
+					fmt.Println("Done !!!")
+					return
+				}
 			}
 			if found {
 				printb()
