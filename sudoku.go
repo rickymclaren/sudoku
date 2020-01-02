@@ -166,7 +166,7 @@ func init() {
 	for i, _ := range b {
 		row := i / 9
 		column := i % 9
-		box := (row / 3 * 3) + column / 3
+		box := (row / 3 * 3) + column/3
 		b[i] = Cell{possibles: numbers, row: row, column: column, box: box}
 	}
 	for _, row := range rows {
@@ -306,6 +306,7 @@ func singles() bool {
 
 func filterForCombo(cells []*Cell, combo []string) []*Cell {
 	result := []*Cell{}
+	// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
 	combos := makeCombinations(combo, 1)
 	for _, cell := range cells {
 		possibles := strings.Join(cell.possibles, "")
