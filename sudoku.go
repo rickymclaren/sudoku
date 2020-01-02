@@ -33,7 +33,7 @@ func (cell *Cell) solve(value string) {
 	cell.possibles = []string{value}
 }
 
-func (cell *Cell) has(s string) bool {
+func (cell *Cell) hasPossible(s string) bool {
 	if cell.solved() {
 		return false
 	}
@@ -110,7 +110,7 @@ func filterExclude(cells []*Cell, include func(*Cell) bool) []*Cell {
 func filterHasPossible(cells []*Cell, s string) []*Cell {
 	result := []*Cell{}
 	for _, c := range cells {
-		if c.has(s) {
+		if c.hasPossible(s) {
 			result = append(result, c)
 		}
 	}
