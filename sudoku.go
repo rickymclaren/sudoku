@@ -306,9 +306,9 @@ func singles() bool {
 
 func filterForCombo(cells []*Cell, combo []string) []*Cell {
 	result := []*Cell{}
+	combos := makeCombinations(combo, 1)
 	for _, cell := range cells {
 		possibles := strings.Join(cell.possibles, "")
-		combos := makeCombinations(combo, 1)
 		for _, c := range combos {
 			if possibles == strings.Join(c, "") {
 				result = append(result, cell)
