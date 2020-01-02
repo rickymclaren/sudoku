@@ -45,7 +45,7 @@ func (cell *Cell) has(s string) bool {
 	return false
 }
 
-func (cell *Cell) remove(value string) bool {
+func (cell *Cell) removePossible(value string) bool {
 	if cell.solved() {
 		return false
 	}
@@ -65,10 +65,10 @@ func (cell *Cell) remove(value string) bool {
 	return result
 }
 
-func (cell *Cell) removeValues(values []string) bool {
+func (cell *Cell) removePossibles(values []string) bool {
 	result := false
 	for _, value := range values {
-		if cell.remove(value) {
+		if cell.removePossible(value) {
 			result = true
 		}
 	}
@@ -80,7 +80,7 @@ func (cell *Cell) removeValues(values []string) bool {
 func removeFromCells(cells []*Cell, values []string) bool {
 	found := false
 	for _, cell := range cells {
-		if cell.removeValues(values) {
+		if cell.removePossibles(values) {
 			found = true
 		}
 	}
