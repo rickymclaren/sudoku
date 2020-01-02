@@ -117,23 +117,6 @@ func filterHasPossible(cells []*Cell, s string) []*Cell {
 	return result
 }
 
-func filterCells(cells []*Cell, remove []*Cell) []*Cell {
-	result := []*Cell{}
-	for _, c := range cells {
-		doAppend := true
-		for _, r := range remove {
-			if r == c {
-				doAppend = false
-			}
-		}
-		if doAppend {
-			result = append(result, c)
-		}
-	}
-	return result
-
-}
-
 var b [81]Cell
 var rows = [][]*Cell{
 	{&b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6], &b[7], &b[8]},
@@ -331,7 +314,15 @@ func filterForCombo(cells []*Cell, combo []string) []*Cell {
 }
 
 func removeCombo(block []*Cell, matches []*Cell, combo []string) bool {
-	others := filterCells(block, matches)
+	inMatches := func(cell *Cell) bool {
+		for _, match := range matches {
+			if cell == match {
+				return true
+			}
+		}
+		return false
+	}
+	others := filterExclude(block, inMatches)
 	return removeFromCells(others, combo)
 }
 
