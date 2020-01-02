@@ -182,7 +182,7 @@ func init() {
 }
 
 // Found on topcoder
-// Imagine all numbers from 0 to 2 ** len(elements) - 1
+// Imagine all numbers from 0 to 2^len-1
 // The bit patterns of these numbers are the combinations
 func makeCombinations(elems []string, min int) [][]string {
 	result := [][]string{}
