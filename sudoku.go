@@ -178,10 +178,10 @@ func init() {
 	for _, box := range boxes {
 		blocks = append(blocks, box)
 	}
-	combinations = makeCombinations(numbers)
+	combinations = makeCombinations(numbers, 2)
 }
 
-func makeCombinations(elems []string) [][]string {
+func makeCombinations(elems []string, min int) [][]string {
 	result := [][]string{}
 	n := len(elems)
 	for num := 0; num < (1 << uint(n)); num++ {
@@ -193,7 +193,7 @@ func makeCombinations(elems []string) [][]string {
 				combination = append(combination, elems[ndx])
 			}
 		}
-		if len(combination) > 1 {
+		if len(combination) >= min {
 			result = append(result, combination)
 		}
 	}
@@ -307,8 +307,12 @@ func singles() bool {
 func filterForCombo(cells []*Cell, combo []string) []*Cell {
 	result := []*Cell{}
 	for _, cell := range cells {
-		if strings.Join(cell.possibles, "") == strings.Join(combo, "") {
-			result = append(result, cell)
+		possibles := strings.Join(cell.possibles, "")
+		combos := makeCombinations(combo, 1)
+		for _, c := range combos {
+			if possibles == strings.Join(c, "") {
+				result = append(result, cell)
+			}
 		}
 	}
 	return result
