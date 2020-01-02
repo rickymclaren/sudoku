@@ -77,6 +77,16 @@ func (cell *Cell) removeValues(values []string) bool {
 
 // -----------------------
 
+func removeFromCells(cells []*Cell, values []string) bool {
+	found := false
+	for _, cell := range cells {
+		if cell.removeValues(values) {
+			found = true
+		}
+	}
+	return found
+}
+
 func filterInclude(cells []*Cell, include func(*Cell) bool) []*Cell {
 	result := []*Cell{}
 	for _, c := range cells {
@@ -279,10 +289,8 @@ func removeSolved() {
 					solved = append(solved, cell.possibles[0])
 				}
 			}
-			for _, cell := range block {
-				if cell.removeValues(solved) {
-					found = true
-				}
+			if removeFromCells(block, solved) {
+				found = true
 			}
 			newSignature := signature(i)
 			if newSignature != oldSignature {
@@ -324,13 +332,7 @@ func filterForCombo(cells []*Cell, combo []string) []*Cell {
 
 func removeCombo(block []*Cell, matches []*Cell, combo []string) bool {
 	others := filterCells(block, matches)
-	found := false
-	for _, cell := range others {
-		if cell.removeValues(combo) {
-			found = true
-		}
-	}
-	return found
+	return removeFromCells(others, combo)
 }
 
 func nakeds() bool {
@@ -377,13 +379,7 @@ func pointingPairs() bool {
 			if scanRow {
 				row := matches[0].row
 				others := filterExclude(rows[row], cellInBox)
-				found := false
-				for _, cell := range others {
-					if cell.remove(number) {
-						found = true
-					}
-				}
-				if found {
+				if removeFromCells(others, []string{number}) {
 					fmt.Printf("Pointing pair: %v in box %v row %v\n", number, i+1, row+1)
 					return true
 				}
@@ -392,13 +388,7 @@ func pointingPairs() bool {
 			if scanColumn {
 				column := matches[0].column
 				others := filterExclude(cols[column], cellInBox)
-				found := false
-				for _, cell := range others {
-					if cell.remove(number) {
-						found = true
-					}
-				}
-				if found {
+				if removeFromCells(others, []string{number}) {
 					fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, column+1)
 					return true
 				}
@@ -424,13 +414,7 @@ func boxLineReduction() bool {
 			if (len(matches) == 2 && matches[1].box == box) ||
 			 	 (len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
 				others := filterExclude(boxes[box], cellInRow)
-				found := false
-				for _, cell := range others {
-					if cell.remove(number) {
-						found = true
-					}
-				}
-				if found {
+				if removeFromCells(others, []string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
 					return true
 				}
@@ -452,13 +436,7 @@ func boxLineReduction() bool {
 			if (len(matches) == 2 && matches[1].box == box) ||
 			 	 (len(matches) == 3 && matches[1].box == box &&  matches[2].box == box) {
 				others := filterExclude(boxes[box], cellInCol)
-				found := false
-				for _, cell := range others {
-					if cell.remove(number) {
-						found = true
-					}
-				}
-				if found {
+				if removeFromCells(others, []string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
 					return true
 				}
