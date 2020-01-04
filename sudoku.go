@@ -19,7 +19,7 @@ import (
 
 type Cell struct {
 	row       int
-	col		    int
+	col       int
 	box       int
 	possibles []string
 }
@@ -298,10 +298,10 @@ func removeSolved() {
 func singles() bool {
 	fmt.Println("=== Singles")
 	for index, cells := range blocks {
-		for _, r := range numbers {
-			matches := filterHasPossible(cells, r)
+		for _, possible := range numbers {
+			matches := filterHasPossible(cells, possible)
 			if len(matches) == 1 {
-				fmt.Printf("Single %s in %v\n", r, nameOfBlock(index))
+				fmt.Printf("Single %s in %v\n", possible, nameOfBlock(index))
 				matches[0].solve(r)
 				return true
 			}
@@ -322,7 +322,7 @@ func nakeds() bool {
 					return true
 				}
 			}
-      return false
+			return false
 		}
 		for index, block := range blocks {
 			matches := filterInclude(block, hasCombo)
