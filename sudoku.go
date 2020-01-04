@@ -302,7 +302,7 @@ func singles() bool {
 			matches := filterHasPossible(cells, possible)
 			if len(matches) == 1 {
 				fmt.Printf("Single %s in %v\n", possible, nameOfBlock(index))
-				matches[0].solve(r)
+				matches[0].solve(possible)
 				return true
 			}
 		}
