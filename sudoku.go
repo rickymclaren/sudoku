@@ -298,41 +298,33 @@ func singles() bool {
 	return false
 }
 
-func filterForCombo(cells []*Cell, combo []string) []*Cell {
-	result := []*Cell{}
-	// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
-	combos := makeCombinations(combo, 1)
-	for _, cell := range cells {
-		possibles := strings.Join(cell.possibles, "")
-		for _, c := range combos {
-			if possibles == strings.Join(c, "") {
-				result = append(result, cell)
-			}
-		}
-	}
-	return result
-}
-
-func removeCombo(block []*Cell, matches []*Cell, combo []string) bool {
-	inMatches := func(cell *Cell) bool {
-		for _, match := range matches {
-			if cell == match {
-				return true
-			}
-		}
-		return false
-	}
-	others := filterExclude(block, inMatches)
-	return removeFromCells(others, combo)
-}
-
 func nakeds() bool {
 	fmt.Println("=== Nakeds")
 	for _, combo := range combinations {
+		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
+		comboFlavours := makeCombinations(combo, 1)
+		hasCombo := func(cell *Cell) bool {
+			possibles := strings.Join(cell.possibles, "")
+			for _, c := range comboFlavours {
+				if possibles == strings.Join(c, "") {
+					return true
+				}
+			}
+      return false
+		}
 		for index, block := range blocks {
-			matches := filterForCombo(block, combo)
+			matches := filterInclude(block, hasCombo)
 			if len(matches) == len(combo) {
-				found := removeCombo(block, matches, combo)
+				inMatches := func(cell *Cell) bool {
+					for _, match := range matches {
+						if cell == match {
+							return true
+						}
+					}
+					return false
+				}
+				others := filterExclude(block, inMatches)
+				found := removeFromCells(others, combo)
 				if found {
 					fmt.Printf("Naked %v found in %s\n", combo, name(index))
 					return true
