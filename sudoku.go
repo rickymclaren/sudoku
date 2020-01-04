@@ -240,7 +240,7 @@ func printb() {
 	fmt.Println()
 }
 
-func name(block int) string {
+func nameOfBlock(block int) string {
 	if block < 9 {
 		return fmt.Sprintf("Row %v", block+1)
 	} else if block < 18 {
@@ -250,9 +250,9 @@ func name(block int) string {
 	}
 }
 
-func signature(i int) string {
+func signatureOfBlock(i int) string {
 	block := blocks[i]
-	result := name(i) + ":"
+	result := nameOfBlock(i) + ":"
 	for _, cell := range block {
 		result += strings.Join(cell.possibles, "") + "|"
 	}
@@ -265,7 +265,7 @@ func removeSolved() {
 	for found {
 		found = false
 		for i, block := range blocks {
-			oldSignature := signature(i)
+			oldSignature := signatureOfBlock(i)
 			solved := []string{}
 			for _, cell := range block {
 				if cell.solved() {
@@ -275,7 +275,7 @@ func removeSolved() {
 			if removeFromCells(block, solved) {
 				found = true
 			}
-			newSignature := signature(i)
+			newSignature := signatureOfBlock(i)
 			if newSignature != oldSignature {
 				// fmt.Printf("%s -> %s\n", oldSignature, newSignature)
 			}
@@ -289,7 +289,7 @@ func singles() bool {
 		for _, r := range numbers {
 			matches := filterHasPossible(cells, r)
 			if len(matches) == 1 {
-				fmt.Printf("Single %s in %v\n", r, name(index))
+				fmt.Printf("Single %s in %v\n", r, nameOfBlock(index))
 				matches[0].solve(r)
 				return true
 			}
@@ -326,7 +326,7 @@ func nakeds() bool {
 				others := filterExclude(block, inMatches)
 				found := removeFromCells(others, combo)
 				if found {
-					fmt.Printf("Naked %v found in %s\n", combo, name(index))
+					fmt.Printf("Naked %v found in %s\n", combo, nameOfBlock(index))
 					return true
 				}
 			}
