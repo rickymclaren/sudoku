@@ -1,5 +1,17 @@
 package main
 
+/*
+ * Terminology
+ * ===========
+ *
+ * The sudoku is made up 81 cells organised in 9 rows and 9 cols
+ * These are referred to as the board or b for short.
+ * A 3x3 cells group is called a box. There are 9 boxes.
+ *
+ * For strategies that can use row/col/box interchangably these can
+ * be accessed as 27 groups i.e. 9 rows, 9 cols, and 9 boxes.
+ */
+
 import (
 	"fmt"
 	"strings"
