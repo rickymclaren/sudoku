@@ -19,7 +19,7 @@ import (
 
 type Cell struct {
 	row       int
-	column    int
+	col		    int
 	box       int
 	possibles []string
 }
@@ -34,7 +34,7 @@ func (cell Cell) inRow(row int) bool {
 }
 
 func (cell Cell) inCol(col int) bool {
-	return cell.column == col
+	return cell.col == col
 }
 
 func (cell Cell) inBox(box int) bool {
@@ -71,7 +71,7 @@ func (cell *Cell) removePossible(value string) bool {
 		}
 	}
 	if len(newPossibles) != len(cell.possibles) {
-		// fmt.Printf("Setting cell %v %v from %v to %v\n", cell.row, cell.column, cell.possibles, newPossibles)
+		// fmt.Printf("Setting cell %v %v from %v to %v\n", cell.row, cell.col, cell.possibles, newPossibles)
 		cell.possibles = newPossibles
 	}
 	return result
@@ -170,9 +170,9 @@ var combinations = [][]string{}
 func init() {
 	for i, _ := range b {
 		row := i / 9
-		column := i % 9
-		box := (row / 3 * 3) + column/3
-		b[i] = Cell{possibles: numbers, row: row, column: column, box: box}
+		col := i % 9
+		box := (row / 3 * 3) + col/3
+		b[i] = Cell{possibles: numbers, row: row, col: col, box: box}
 	}
 	for _, row := range rows {
 		blocks = append(blocks, row)
@@ -356,18 +356,18 @@ func pointingPairs() bool {
 		for _, number := range numbers {
 			matches := filterHasPossible(box, number)
 			scanRow := false
-			scanColumn := false
+			scanCol := false
 			if len(matches) == 2 {
 				if matches[0].row == matches[1].row {
 					scanRow = true
-				} else if matches[0].column == matches[1].column {
-					scanColumn = true
+				} else if matches[0].col == matches[1].col {
+					scanCol = true
 				}
 			} else if len(matches) == 3 {
 				if matches[0].row == matches[1].row && matches[0].row == matches[2].row {
 					scanRow = true
-				} else if matches[0].column == matches[1].column && matches[0].column == matches[2].column {
-					scanColumn = true
+				} else if matches[0].col == matches[1].col && matches[0].col == matches[2].col {
+					scanCol = true
 				}
 			}
 
@@ -380,11 +380,11 @@ func pointingPairs() bool {
 				}
 			}
 
-			if scanColumn {
-				column := matches[0].column
-				others := filterExclude(cols[column], cellInBox)
+			if scanCol {
+				col := matches[0].col
+				others := filterExclude(cols[col], cellInBox)
 				if removeFromCells(others, []string{number}) {
-					fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, column+1)
+					fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, col+1)
 					return true
 				}
 			}
@@ -420,7 +420,7 @@ func boxLineReduction() bool {
 
 	for i, col := range cols {
 		cellInCol := func(cell *Cell) bool {
-			return cell.column == i
+			return cell.col == i
 		}
 		for _, number := range numbers {
 			matches := filterHasPossible(col, number)
