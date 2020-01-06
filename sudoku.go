@@ -347,6 +347,50 @@ func nakeds() bool {
 	return false
 }
 
+func hiddens() bool {
+	fmt.Println("=== Hiddens")
+	for _, combo := range combinations {
+		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
+		comboFlavours := makeCombinations(combo, 1)
+		hasCombo := func(cell *Cell) bool {
+			possibles := ""
+			for _, p := range cell.possibles {
+				for _, c := range combo {
+					if p == c {
+						possibles += p
+					}
+				}
+			}
+			for _, c := range comboFlavours {
+				if possibles == strings.Join(c, "") {
+					return true
+				}
+			}
+			return false
+		}
+		for index, block := range blocks {
+			matches := filterInclude(block, hasCombo)
+			if len(matches) == len(combo) {
+				inMatches := func(cell *Cell) bool {
+					for _, match := range matches {
+						if cell == match {
+							return true
+						}
+					}
+					return false
+				}
+				others := filterExclude(block, inMatches)
+				found := removeFromCells(others, combo)
+				if found {
+					fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func pointingPairs() bool {
 	fmt.Println("=== Pointing Pairs")
 	for i, box := range boxes {
@@ -446,6 +490,7 @@ func main() {
 	strategies := []func() bool{
 		singles,
 		nakeds,
+		hiddens,
 		pointingPairs,
 		boxLineReduction,
 	}
