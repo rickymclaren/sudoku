@@ -87,6 +87,15 @@ func (cell *Cell) removePossibles(values []string) bool {
 	return result
 }
 
+func (cell *Cell) hasAtLeastOneOf(possibles []string) bool {
+	for _, possible := range possibles {
+		if cell.hasPossible(possible) {
+			return true
+		}
+	}
+	return false
+}
+
 // -----------------------
 
 func removeFromCells(cells []*Cell, values []string) bool {
@@ -295,6 +304,9 @@ func removeSolved() {
 	}
 }
 
+/*
+ * If a cell is the only one to contain a possible then it is the solution
+ */
 func singles() bool {
 	fmt.Println("=== Singles")
 	for index, cells := range blocks {
@@ -310,6 +322,9 @@ func singles() bool {
 	return false
 }
 
+/*
+ * If two or more cells are the only ones to contain a combo then the combo can be removed from other cells
+ */
 func nakeds() bool {
 	fmt.Println("=== Nakeds")
 	for _, combo := range combinations {
@@ -347,50 +362,32 @@ func nakeds() bool {
 	return false
 }
 
+/*
+ * If two or more cells are the only ones to contain a combo then any other possibles can be removed from those cells
+ */
 func hiddens() bool {
 	fmt.Println("=== Hiddens")
 	for _, combo := range combinations {
-		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
-		comboFlavours := makeCombinations(combo, 1)
 		hasCombo := func(cell *Cell) bool {
-			possibles := ""
-			for _, p := range cell.possibles {
-				for _, c := range combo {
-					if p == c {
-						possibles += p
-					}
-				}
-			}
-			for _, c := range comboFlavours {
-				if possibles == strings.Join(c, "") {
-					return true
-				}
-			}
-			return false
+			return cell.hasAtLeastOneOf(combo)
 		}
 		for index, block := range blocks {
 			matches := filterInclude(block, hasCombo)
 			if len(matches) == len(combo) {
-				inMatches := func(cell *Cell) bool {
-					for _, match := range matches {
-						if cell == match {
-							return true
-						}
-					}
-					return false
+				for _, match := range matches {
+					match.possibles = combo
 				}
-				others := filterExclude(block, inMatches)
-				found := removeFromCells(others, combo)
-				if found {
-					fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
-					return true
-				}
+				fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
+				return true
 			}
 		}
 	}
 	return false
 }
 
+/*
+ * If 2 or 3 cells in a box have a possible only in the same row/col then it can be removed from the rest of that row/col
+ */
 func pointingPairs() bool {
 	fmt.Println("=== Pointing Pairs")
 	for i, box := range boxes {
@@ -438,6 +435,9 @@ func pointingPairs() bool {
 	return false
 }
 
+/*
+ * If 2 or 3 cells in a row/col have a possible only in the same box then it can be removed from the rest of that box
+ */
 func boxLineReduction() bool {
 	fmt.Println("=== Box Line Reduction")
 	for i, row := range rows {
