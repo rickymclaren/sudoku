@@ -96,6 +96,18 @@ func (cell *Cell) hasAtLeastOneOf(possibles []string) bool {
 	return false
 }
 
+func (cell *Cell) hasAllOf(possibles []string) bool {
+	if cell.solved() {
+		return false
+	}
+	for _, possible := range possibles {
+		if !cell.hasPossible(possible) {
+			return false
+		}
+	}
+	return true
+}
+
 // -----------------------
 
 func removeFromCells(cells []*Cell, values []string) bool {
@@ -369,7 +381,7 @@ func hiddens() bool {
 	fmt.Println("=== Hiddens")
 	for _, combo := range combinations {
 		hasCombo := func(cell *Cell) bool {
-			return cell.hasAtLeastOneOf(combo)
+			return cell.hasAllOf(combo)
 		}
 		for index, block := range blocks {
 			matches := filterInclude(block, hasCombo)
@@ -494,7 +506,7 @@ func main() {
 		pointingPairs,
 		boxLineReduction,
 	}
-	parse("...2...633....54.1..1..398........9....538....3........263..5..5.37....847...1...")
+	parse("5286...4913649..257942.563....1..2....78263....25.9.6.24.3..9768.97.2413.7.9.4582")
 	printb()
 	removeSolved()
 	printb()
