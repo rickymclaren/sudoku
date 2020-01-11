@@ -14,6 +14,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -87,13 +88,20 @@ func (cell *Cell) removePossibles(values []string) bool {
 	return result
 }
 
-func (cell *Cell) hasAtLeastOneOf(possibles []string) bool {
-	for _, possible := range possibles {
-		if cell.hasPossible(possible) {
-			return true
+func (cell *Cell) removePossiblesApartFrom(values []string) bool {
+	result := false
+	for _, possible := range cell.possibles {
+		isValue := false
+		for _, value := range values {
+			if possible == value {
+				isValue = true
+			}
+		}
+		if !isValue && cell.removePossible(possible) {
+			result = true
 		}
 	}
-	return false
+	return result
 }
 
 func (cell *Cell) hasAllOf(possibles []string) bool {
@@ -106,6 +114,18 @@ func (cell *Cell) hasAllOf(possibles []string) bool {
 		}
 	}
 	return true
+}
+
+func (cell *Cell) hasAnyOf(possibles []string) bool {
+	if cell.solved() {
+		return false
+	}
+	for _, possible := range possibles {
+		if cell.hasPossible(possible) {
+			return true
+		}
+	}
+	return false
 }
 
 // -----------------------
@@ -148,6 +168,31 @@ func filterHasPossible(cells []*Cell, s string) []*Cell {
 		}
 	}
 	return result
+}
+
+func unique(values []string) []string {
+	result := []string{}
+	m := make(map[string]bool)
+	for _, value := range values {
+		m[value] = true
+	}
+	for k := range m {
+		result = append(result, k)
+	}
+	sort.Strings(result)
+	return result
+}
+
+func possibles(cells []*Cell) []string {
+	result := []string{}
+	for _, cell := range cells {
+		if !cell.solved() {
+			for _, possible := range cell.possibles {
+				result = append(result, possible)
+			}
+		}
+	}
+	return unique(result)
 }
 
 var b [81]Cell
@@ -379,22 +424,27 @@ func nakeds() bool {
  */
 func hiddens() bool {
 	fmt.Println("=== Hiddens")
-	for _, combo := range combinations {
-		hasCombo := func(cell *Cell) bool {
-			return cell.hasAllOf(combo)
-		}
-		for index, block := range blocks {
+	result := false
+	for index, block := range blocks {
+		possibles := possibles(block)
+		combinations := makeCombinations(possibles, 2)
+		for _, combo := range combinations {
+			hasCombo := func(cell *Cell) bool {
+				return cell.hasAnyOf(combo)
+			}
 			matches := filterInclude(block, hasCombo)
 			if len(matches) == len(combo) {
 				for _, match := range matches {
-					match.possibles = combo
+					if match.removePossiblesApartFrom(combo) {
+						fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
+						result = true
+					}
 				}
-				fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
-				return true
 			}
+
 		}
 	}
-	return false
+	return result
 }
 
 /*
