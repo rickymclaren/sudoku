@@ -436,7 +436,6 @@ func nakeds() bool {
  */
 func hiddens() bool {
 	fmt.Println("=== Hiddens")
-	result := false
 	for index, block := range blocks {
 		possibles := possibles(block)
 		combinations := makeCombinations(possibles, 2)
@@ -446,17 +445,21 @@ func hiddens() bool {
 			}
 			matches := filterInclude(block, hasCombo)
 			if len(matches) == len(combo) {
+				found := false
 				for _, match := range matches {
 					if match.removePossiblesApartFrom(combo) {
-						fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
-						result = true
+						found = true
 					}
+				}
+				if found {
+					fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
+					return true
 				}
 			}
 
 		}
 	}
-	return result
+	return false
 }
 
 /*
@@ -641,6 +644,7 @@ func main() {
 	for index, puzzle := range puzzles {
 		total++
 		fmt.Printf("### Puzzle %v ###\n", total)
+		fmt.Printf(puzzle)
 		solvedIt, solution := solvePuzzle(puzzle)
 		if solvedIt {
 			solved++
