@@ -630,6 +630,8 @@ func loadFile(name string) ([]string, bool) {
 
 func main() {
 
+	status := ""
+
 	puzzles, done := loadFile("top95.txt")
 	if done {
 		return
@@ -647,6 +649,7 @@ func main() {
 		fmt.Printf(puzzle)
 		solvedIt, solution := solvePuzzle(puzzle)
 		if solvedIt {
+			status += "S"
 			solved++
 			if solution != expected[index] {
 				fmt.Println("Incorrect solution")
@@ -654,9 +657,15 @@ func main() {
 				fmt.Println(expected[index])
 				return
 			}
+		} else {
+			status += "."
+		}
+		if total % 10 == 0 {
+			status += "\n"
 		}
 	}
 
 	fmt.Printf("Solved %v out of %v\n", solved, total)
+	fmt.Println(status)
 }
 
