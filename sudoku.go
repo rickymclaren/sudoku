@@ -13,7 +13,9 @@ package main
  */
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 )
@@ -195,6 +197,14 @@ func possibles(cells []*Cell) []string {
 	return unique(result)
 }
 
+func solution() string {
+	solution := ""
+	for _, cell := range b {
+		solution += strings.Join(cell.possibles, "")
+	}
+	return solution
+}
+
 var b [81]Cell
 var rows = [][]*Cell{
 	{&b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6], &b[7], &b[8]},
@@ -280,7 +290,9 @@ func parse(s string) {
 	}
 	for i := 0; i < len(s); i++ {
 		c := string(s[i])
-		if c != "." {
+		if c == "." {
+			b[i].possibles = numbers
+		} else {
 			b[i].possibles = []string{c}
 		}
 	}
@@ -548,7 +560,7 @@ func boxLineReduction() bool {
 	return false
 }
 
-func main() {
+func solvePuzzle(puzzle string) (bool, string) {
 	strategies := []func() bool{
 		singles,
 		nakeds,
@@ -556,13 +568,13 @@ func main() {
 		pointingPairs,
 		boxLineReduction,
 	}
-	parse("5286...4913649..257942.563....1..2....78263....25.9.6.24.3..9768.97.2413.7.9.4582")
+	parse(puzzle)
 	printb()
 	removeSolved()
 	printb()
 	if boardSolved() {
 		fmt.Println("Done !!!")
-		return
+		return true, solution()
 	}
 	for {
 		found := false
@@ -571,7 +583,7 @@ func main() {
 				found = true
 				if boardSolved() {
 					fmt.Println("Done !!!")
-					return
+					return true, solution()
 				}
 			}
 			if found {
@@ -580,15 +592,65 @@ func main() {
 				printb()
 				if boardSolved() {
 					fmt.Println("Done !!!")
-					return
+					return true, solution()
 				}
-				continue
+				break
 			}
 		}
 
 		if !found {
 			fmt.Println("Beats me !!!")
-			return
+			return false, solution()
 		}
 	}
 }
+
+func loadFile(name string) ([]string, bool) {
+	file, err := os.Open(name)
+	if err != nil {
+		fmt.Println(err)
+		return nil, true
+	}
+	defer file.Close()
+
+	var puzzles = []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		puzzles = append(puzzles, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+		return nil, true
+	}
+	return puzzles, false
+}
+
+func main() {
+
+	puzzles, done := loadFile("top95.txt")
+	if done {
+		return
+	}
+
+	expected, done := loadFile("top95expected.txt")
+	if done {
+		return
+	}
+
+	var solved, total int
+	for index, puzzle := range puzzles {
+		total++
+		fmt.Printf("### Puzzle %v ###\n", total)
+		solvedIt, solution := solvePuzzle(puzzle)
+		if solvedIt {
+			solved++
+			if solution != expected[index] {
+				fmt.Println("Incorrect solution")
+				return
+			}
+		}
+	}
+
+	fmt.Printf("Solved %v out of %v\n", solved, total)
+}
+
