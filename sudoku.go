@@ -650,6 +650,8 @@ func main() {
 			solved++
 			if solution != expected[index] {
 				fmt.Println("Incorrect solution")
+				fmt.Println(solution)
+				fmt.Println(expected[index])
 				return
 			}
 		}
