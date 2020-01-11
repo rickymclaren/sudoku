@@ -26,8 +26,8 @@ type Cell struct {
 }
 
 // --- Methods of Cell ---
-func (c Cell) solved() bool {
-	return len(c.possibles) == 1
+func (cell Cell) solved() bool {
+	return len(cell.possibles) == 1
 }
 
 func (cell Cell) inRow(row int) bool {
