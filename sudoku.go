@@ -27,6 +27,8 @@ type Cell struct {
 	possibles []string
 }
 
+type Cells []*Cell
+
 // --- Methods of Cell ---
 func (cell Cell) solved() bool {
 	return len(cell.possibles) == 1
@@ -130,9 +132,9 @@ func (cell *Cell) hasAnyOf(possibles []string) bool {
 	return false
 }
 
-// -----------------------
+// --- Methods of Cells ---
 
-func removeFromCells(cells []*Cell, values []string) bool {
+func (cells Cells) remove(values []string) bool {
 	found := false
 	for _, cell := range cells {
 		if cell.removePossibles(values) {
@@ -142,7 +144,7 @@ func removeFromCells(cells []*Cell, values []string) bool {
 	return found
 }
 
-func filterInclude(cells []*Cell, include func(*Cell) bool) []*Cell {
+func (cells Cells) filterInclude(include func(*Cell) bool) Cells {
 	result := []*Cell{}
 	for _, c := range cells {
 		if include(c) {
@@ -152,7 +154,7 @@ func filterInclude(cells []*Cell, include func(*Cell) bool) []*Cell {
 	return result
 }
 
-func filterExclude(cells []*Cell, include func(*Cell) bool) []*Cell {
+func (cells Cells) filterExclude(include func(*Cell) bool) Cells {
 	result := []*Cell{}
 	for _, c := range cells {
 		if !include(c) {
@@ -162,7 +164,7 @@ func filterExclude(cells []*Cell, include func(*Cell) bool) []*Cell {
 	return result
 }
 
-func filterHasPossible(cells []*Cell, s string) []*Cell {
+func (cells Cells) filterHasPossible(s string) Cells {
 	result := []*Cell{}
 	for _, c := range cells {
 		if c.hasPossible(s) {
@@ -171,6 +173,20 @@ func filterHasPossible(cells []*Cell, s string) []*Cell {
 	}
 	return result
 }
+
+func (cells Cells) possibles() []string {
+	result := []string{}
+	for _, cell := range cells {
+		if !cell.solved() {
+			for _, possible := range cell.possibles {
+				result = append(result, possible)
+			}
+		}
+	}
+	return unique(result)
+}
+
+//------- General functions ----------
 
 func unique(values []string) []string {
 	result := []string{}
@@ -185,18 +201,6 @@ func unique(values []string) []string {
 	return result
 }
 
-func possibles(cells []*Cell) []string {
-	result := []string{}
-	for _, cell := range cells {
-		if !cell.solved() {
-			for _, possible := range cell.possibles {
-				result = append(result, possible)
-			}
-		}
-	}
-	return unique(result)
-}
-
 func solution() string {
 	solution := ""
 	for _, cell := range b {
@@ -205,8 +209,10 @@ func solution() string {
 	return solution
 }
 
+//-------------------------------------------
+
 var b [81]Cell
-var rows = [][]*Cell{
+var rows = []Cells{
 	{&b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6], &b[7], &b[8]},
 	{&b[9], &b[10], &b[11], &b[12], &b[13], &b[14], &b[15], &b[16], &b[17]},
 	{&b[18], &b[19], &b[20], &b[21], &b[22], &b[23], &b[24], &b[25], &b[26]},
@@ -217,7 +223,7 @@ var rows = [][]*Cell{
 	{&b[63], &b[64], &b[65], &b[66], &b[67], &b[68], &b[69], &b[70], &b[71]},
 	{&b[72], &b[73], &b[74], &b[75], &b[76], &b[77], &b[78], &b[79], &b[80]},
 }
-var cols = [][]*Cell{
+var cols = []Cells{
 	{&b[0], &b[9], &b[18], &b[27], &b[36], &b[45], &b[54], &b[63], &b[72]},
 	{&b[1], &b[10], &b[19], &b[28], &b[37], &b[46], &b[55], &b[64], &b[73]},
 	{&b[2], &b[11], &b[20], &b[29], &b[38], &b[47], &b[56], &b[65], &b[74]},
@@ -228,7 +234,7 @@ var cols = [][]*Cell{
 	{&b[7], &b[16], &b[25], &b[34], &b[43], &b[52], &b[61], &b[70], &b[79]},
 	{&b[8], &b[17], &b[26], &b[35], &b[44], &b[53], &b[62], &b[71], &b[80]},
 }
-var boxes = [][]*Cell{
+var boxes = []Cells{
 	{&b[0], &b[1], &b[2], &b[9], &b[10], &b[11], &b[18], &b[19], &b[20]},
 	{&b[3], &b[4], &b[5], &b[12], &b[13], &b[14], &b[21], &b[22], &b[23]},
 	{&b[6], &b[7], &b[8], &b[15], &b[16], &b[17], &b[24], &b[25], &b[26]},
@@ -239,12 +245,12 @@ var boxes = [][]*Cell{
 	{&b[57], &b[58], &b[59], &b[66], &b[67], &b[68], &b[75], &b[76], &b[77]},
 	{&b[60], &b[61], &b[62], &b[69], &b[70], &b[71], &b[78], &b[79], &b[80]},
 }
-var blocks = [][]*Cell{}
+var blocks = []Cells{}
 var numbers []string = strings.Split("123456789", "")
 var combinations = [][]string{}
 
 func init() {
-	for i, _ := range b {
+	for i := range b {
 		row := i / 9
 		col := i % 9
 		box := (row / 3 * 3) + col/3
@@ -308,7 +314,7 @@ func boardSolved() bool {
 
 func printb() {
 	fmt.Println()
-	for i, _ := range b {
+	for i := range b {
 		if b[i].solved() {
 			fmt.Printf("%-10s", "    "+b[i].possibles[0])
 		} else {
@@ -362,7 +368,7 @@ func removeSolved() {
 					solved = append(solved, cell.possibles[0])
 				}
 			}
-			if removeFromCells(block, solved) {
+			if block.remove(solved) {
 				found = true
 			}
 			newSignature := signatureOfBlock(i)
@@ -380,7 +386,7 @@ func singles() bool {
 	fmt.Println("=== Singles")
 	for index, cells := range blocks {
 		for _, possible := range numbers {
-			matches := filterHasPossible(cells, possible)
+			matches := cells.filterHasPossible(possible)
 			if len(matches) == 1 {
 				fmt.Printf("Single %s in %v\n", possible, nameOfBlock(index))
 				matches[0].solve(possible)
@@ -409,7 +415,7 @@ func nakeds() bool {
 			return false
 		}
 		for index, block := range blocks {
-			matches := filterInclude(block, hasCombo)
+			matches := block.filterInclude(hasCombo)
 			if len(matches) == len(combo) {
 				inMatches := func(cell *Cell) bool {
 					for _, match := range matches {
@@ -419,8 +425,8 @@ func nakeds() bool {
 					}
 					return false
 				}
-				others := filterExclude(block, inMatches)
-				found := removeFromCells(others, combo)
+				others := block.filterExclude(inMatches)
+				found := others.remove(combo)
 				if found {
 					fmt.Printf("Naked %v found in %s\n", combo, nameOfBlock(index))
 					return true
@@ -437,13 +443,13 @@ func nakeds() bool {
 func hiddens() bool {
 	fmt.Println("=== Hiddens")
 	for index, block := range blocks {
-		possibles := possibles(block)
+		possibles := block.possibles()
 		combinations := makeCombinations(possibles, 2)
 		for _, combo := range combinations {
 			hasCombo := func(cell *Cell) bool {
 				return cell.hasAnyOf(combo)
 			}
-			matches := filterInclude(block, hasCombo)
+			matches := block.filterInclude(hasCombo)
 			if len(matches) == len(combo) {
 				found := false
 				for _, match := range matches {
@@ -472,7 +478,7 @@ func pointingPairs() bool {
 			return cell.box == i
 		}
 		for _, number := range numbers {
-			matches := filterHasPossible(box, number)
+			matches := box.filterHasPossible(number)
 			scanRow := false
 			scanCol := false
 			if len(matches) == 2 {
@@ -491,8 +497,8 @@ func pointingPairs() bool {
 
 			if scanRow {
 				row := matches[0].row
-				others := filterExclude(rows[row], cellInBox)
-				if removeFromCells(others, []string{number}) {
+				others := rows[row].filterExclude(cellInBox)
+				if others.remove([]string{number}) {
 					fmt.Printf("Pointing pair: %v in box %v row %v\n", number, i+1, row+1)
 					return true
 				}
@@ -500,8 +506,8 @@ func pointingPairs() bool {
 
 			if scanCol {
 				col := matches[0].col
-				others := filterExclude(cols[col], cellInBox)
-				if removeFromCells(others, []string{number}) {
+				others := cols[col].filterExclude(cellInBox)
+				if others.remove([]string{number}) {
 					fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, col+1)
 					return true
 				}
@@ -522,15 +528,15 @@ func boxLineReduction() bool {
 			return cell.row == i
 		}
 		for _, number := range numbers {
-			matches := filterHasPossible(row, number)
+			matches := row.filterHasPossible(number)
 			if len(matches) == 0 {
 				continue
 			}
 			box := matches[0].box
 			if (len(matches) == 2 && matches[1].box == box) ||
 				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
-				others := filterExclude(boxes[box], cellInRow)
-				if removeFromCells(others, []string{number}) {
+				others := boxes[box].filterExclude(cellInRow)
+				if others.remove([]string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
 					return true
 				}
@@ -544,15 +550,15 @@ func boxLineReduction() bool {
 			return cell.col == i
 		}
 		for _, number := range numbers {
-			matches := filterHasPossible(col, number)
+			matches := col.filterHasPossible(number)
 			if len(matches) == 0 {
 				continue
 			}
 			box := matches[0].box
 			if (len(matches) == 2 && matches[1].box == box) ||
 				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
-				others := filterExclude(boxes[box], cellInCol)
-				if removeFromCells(others, []string{number}) {
+				others := boxes[box].filterExclude(cellInCol)
+				if others.remove([]string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
 					return true
 				}
@@ -660,7 +666,7 @@ func main() {
 		} else {
 			status += "."
 		}
-		if total % 10 == 0 {
+		if total%10 == 0 {
 			status += "\n"
 		}
 	}
@@ -668,4 +674,3 @@ func main() {
 	fmt.Printf("Solved %v out of %v\n", solved, total)
 	fmt.Println(status)
 }
-
