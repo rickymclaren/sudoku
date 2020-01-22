@@ -569,6 +569,53 @@ func boxLineReduction() bool {
 	return false
 }
 
+func makeIntCombinations(elems []int) [][]int {
+	result := [][]int{}
+	n := len(elems)
+	for num := 0; num < (1 << uint(n)); num++ {
+		combination := []int{}
+		for ndx := 0; ndx < n; ndx++ {
+			// (is the bit "on" in this number?)
+			if num&(1<<uint(ndx)) != 0 {
+				// (then add it to the combination)
+				combination = append(combination, elems[ndx])
+			}
+		}
+		if len(combination) == 2 {
+			result = append(result, combination)
+		}
+	}
+	return result
+}
+
+func xwing() bool {
+	fmt.Println("=== XWing ===")
+	indexes := []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
+	combos := makeIntCombinations(indexes)
+	for _, possible := range numbers {
+		for _, combo := range combos {
+			matchedRows := []int{}
+			for i, row := range rows {
+				matchedCells := row.filterHasPossible(possible)
+				if len(matchedCells) == 2 &&
+					matchedCells[0].col == combo[0] &&
+					matchedCells[1].col == combo[1] {
+					fmt.Printf("Possible xwing %v in cols %v\n", possible, combo)
+					matchedRows = append(matchedRows, i)
+					others := Cells{}
+					others = append(others, cols[combo[0]])
+					inRow := func(cell *Cell) bool {
+						return cell.inRow(i)
+					}
+					others = others.filterExclude(inRow)
+				}
+			}
+
+		}
+	}
+	return false
+}
+
 func solvePuzzle(puzzle string) (bool, string) {
 	strategies := []func() bool{
 		singles,
@@ -576,6 +623,7 @@ func solvePuzzle(puzzle string) (bool, string) {
 		hiddens,
 		pointingPairs,
 		boxLineReduction,
+		xwing,
 	}
 	parse(puzzle)
 	printb()
@@ -638,7 +686,7 @@ func main() {
 
 	status := ""
 
-	puzzles, done := loadFile("top95.txt")
+	puzzles, done := loadFile("testXWing.txt")
 	if done {
 		return
 	}
