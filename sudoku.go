@@ -20,6 +20,8 @@ import (
 	"strings"
 )
 
+// Cell is the basic building block of a sudoku.
+// If it has only one possible then it is solved.
 type Cell struct {
 	row       int
 	col       int
@@ -27,6 +29,7 @@ type Cell struct {
 	possibles []string
 }
 
+// Cells is a group of cells. This could be all the cells in a row, column, or box.
 type Cells []*Cell
 
 // --- Methods of Cell ---
@@ -247,6 +250,7 @@ var boxes = []Cells{
 }
 var blocks = []Cells{}
 var numbers []string = strings.Split("123456789", "")
+var indexes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
 var combinations = [][]string{}
 
 func init() {
@@ -265,13 +269,13 @@ func init() {
 	for _, box := range boxes {
 		blocks = append(blocks, box)
 	}
-	combinations = makeCombinations(numbers, 2)
+	combinations = combosOfString(numbers, 2)
 }
 
 // Found on topcoder
 // Imagine all numbers from 0 to 2^len-1
 // The bit patterns of these numbers are the combinations
-func makeCombinations(elems []string, min int) [][]string {
+func combosOfString(elems []string, min int) [][]string {
 	result := [][]string{}
 	n := len(elems)
 	for num := 0; num < (1 << uint(n)); num++ {
@@ -284,6 +288,25 @@ func makeCombinations(elems []string, min int) [][]string {
 			}
 		}
 		if len(combination) >= min {
+			result = append(result, combination)
+		}
+	}
+	return result
+}
+
+func combosOfInt(elems []int, size int) [][]int {
+	result := [][]int{}
+	n := len(elems)
+	for num := 0; num < (1 << uint(n)); num++ {
+		combination := []int{}
+		for ndx := 0; ndx < n; ndx++ {
+			// (is the bit "on" in this number?)
+			if num&(1<<uint(ndx)) != 0 {
+				// (then add it to the combination)
+				combination = append(combination, elems[ndx])
+			}
+		}
+		if len(combination) == size {
 			result = append(result, combination)
 		}
 	}
@@ -379,9 +402,7 @@ func removeSolved() {
 	}
 }
 
-/*
- * If a cell is the only one to contain a possible then it is the solution
- */
+// If a cell is the only one to contain a possible then it is the solution.
 func singles() bool {
 	fmt.Println("=== Singles")
 	for index, cells := range blocks {
@@ -397,14 +418,12 @@ func singles() bool {
 	return false
 }
 
-/*
- * If two or more cells are the only ones to contain a combo then the combo can be removed from other cells
- */
+// If two or more cells are the only ones to contain a combo then the combo can be removed from other cells.
 func nakeds() bool {
 	fmt.Println("=== Nakeds")
 	for _, combo := range combinations {
 		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
-		comboFlavours := makeCombinations(combo, 1)
+		comboFlavours := combosOfString(combo, 1)
 		hasCombo := func(cell *Cell) bool {
 			possibles := strings.Join(cell.possibles, "")
 			for _, c := range comboFlavours {
@@ -437,14 +456,12 @@ func nakeds() bool {
 	return false
 }
 
-/*
- * If two or more cells are the only ones to contain a combo then any other possibles can be removed from those cells
- */
+// If two or more cells are the only ones to contain a combo then any other possibles can be removed from those cells.
 func hiddens() bool {
 	fmt.Println("=== Hiddens")
 	for index, block := range blocks {
 		possibles := block.possibles()
-		combinations := makeCombinations(possibles, 2)
+		combinations := combosOfString(possibles, 2)
 		for _, combo := range combinations {
 			hasCombo := func(cell *Cell) bool {
 				return cell.hasAnyOf(combo)
@@ -468,9 +485,7 @@ func hiddens() bool {
 	return false
 }
 
-/*
- * If 2 or 3 cells in a box have a possible only in the same row/col then it can be removed from the rest of that row/col
- */
+// If 2 or 3 cells in a box have a possible only in the same row/col then it can be removed from the rest of that row/col.
 func pointingPairs() bool {
 	fmt.Println("=== Pointing Pairs")
 	for i, box := range boxes {
@@ -518,9 +533,7 @@ func pointingPairs() bool {
 	return false
 }
 
-/*
- * If 2 or 3 cells in a row/col have a possible only in the same box then it can be removed from the rest of that box
- */
+// If 2 or 3 cells in a row/col have a possible only in the same box then it can be removed from the rest of that box.
 func boxLineReduction() bool {
 	fmt.Println("=== Box Line Reduction")
 	for i, row := range rows {
@@ -569,29 +582,13 @@ func boxLineReduction() bool {
 	return false
 }
 
-func makeIntCombinations(elems []int) [][]int {
-	result := [][]int{}
-	n := len(elems)
-	for num := 0; num < (1 << uint(n)); num++ {
-		combination := []int{}
-		for ndx := 0; ndx < n; ndx++ {
-			// (is the bit "on" in this number?)
-			if num&(1<<uint(ndx)) != 0 {
-				// (then add it to the combination)
-				combination = append(combination, elems[ndx])
-			}
-		}
-		if len(combination) == 2 {
-			result = append(result, combination)
-		}
-	}
-	return result
-}
-
+// If there are only 2 possibles in the same two columns of two rows, i.e. forming an X, then the possible
+// can be removed from the rest of the cells in those two columns.
+//
+// Repeat swapping rows and colums.
 func xwing() bool {
-	fmt.Println("=== XWing ===")
-	indexes := []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-	combos := makeIntCombinations(indexes)
+	fmt.Println("=== XWing")
+	combos := combosOfInt(indexes, 2)
 	for _, possible := range numbers {
 		for _, combo := range combos {
 			matchedRows := []int{}
@@ -600,17 +597,53 @@ func xwing() bool {
 				if len(matchedCells) == 2 &&
 					matchedCells[0].col == combo[0] &&
 					matchedCells[1].col == combo[1] {
-					fmt.Printf("Possible xwing %v in cols %v\n", possible, combo)
 					matchedRows = append(matchedRows, i)
-					others := Cells{}
-					others = append(others, cols[combo[0]])
-					inRow := func(cell *Cell) bool {
-						return cell.inRow(i)
-					}
-					others = others.filterExclude(inRow)
+				}
+			}
+			if len(matchedRows) == 2 {
+				others := Cells{}
+				for _, cell := range cols[combo[0]] {
+					others = append(others, cell)
+				}
+				for _, cell := range cols[combo[1]] {
+					others = append(others, cell)
+				}
+				inRow := func(cell *Cell) bool {
+					return cell.inRow(matchedRows[0]) || cell.inRow(matchedRows[1])
+				}
+				others = others.filterExclude(inRow)
+				if others.remove([]string{possible}) {
+					fmt.Printf("XWing %v in rows %v,%v cols %v,%v\n", possible, matchedRows[0]+1, matchedRows[1]+1, combo[0]+1, combo[1]+1)
+					return true
 				}
 			}
 
+			matchedCols := []int{}
+			for i, col := range cols {
+				matchedCells := col.filterHasPossible(possible)
+				if len(matchedCells) == 2 &&
+					matchedCells[0].row == combo[0] &&
+					matchedCells[1].row == combo[1] {
+					matchedCols = append(matchedCols, i)
+				}
+			}
+			if len(matchedCols) == 2 {
+				others := Cells{}
+				for _, cell := range rows[combo[0]] {
+					others = append(others, cell)
+				}
+				for _, cell := range rows[combo[1]] {
+					others = append(others, cell)
+				}
+				inCol := func(cell *Cell) bool {
+					return cell.inCol(matchedCols[0]) || cell.inCol(matchedCols[1])
+				}
+				others = others.filterExclude(inCol)
+				if others.remove([]string{possible}) {
+					fmt.Printf("XWing %v in cols %v,%v rows %v,%v\n", possible, matchedCols[0]+1, matchedCols[1]+1, combo[0]+1, combo[1]+1)
+					return true
+				}
+			}
 		}
 	}
 	return false
@@ -686,7 +719,7 @@ func main() {
 
 	status := ""
 
-	puzzles, done := loadFile("testXWing.txt")
+	puzzles, done := loadFile("top95.txt")
 	if done {
 		return
 	}
