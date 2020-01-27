@@ -649,6 +649,7 @@ func xwing() bool {
 }
 
 // Swordfish is the 3 row/col variant of XWing.
+// Note: It has to handle 3 and 2 row/col combinations.
 func swordfish() bool {
 	combos := combosOfInt(indexes, 3)
 	for _, possible := range numbers {
