@@ -379,7 +379,7 @@ func signatureOfBlock(i int) string {
 }
 
 func removeSolved() {
-	fmt.Println("=== Remove Solved")
+	removed := false
 	found := true
 	for found {
 		found = false
@@ -393,6 +393,7 @@ func removeSolved() {
 			}
 			if block.remove(solved) {
 				found = true
+				removed = true
 			}
 			newSignature := signatureOfBlock(i)
 			if newSignature != oldSignature {
@@ -400,11 +401,14 @@ func removeSolved() {
 			}
 		}
 	}
+	if removed {
+		fmt.Println("Removed Solved")
+		printb()
+	}
 }
 
 // If a cell is the only one to contain a possible then it is the solution.
 func singles() bool {
-	fmt.Println("=== Singles")
 	for index, cells := range blocks {
 		for _, possible := range numbers {
 			matches := cells.filterHasPossible(possible)
@@ -420,7 +424,6 @@ func singles() bool {
 
 // If two or more cells are the only ones to contain a combo then the combo can be removed from other cells.
 func nakeds() bool {
-	fmt.Println("=== Nakeds")
 	for _, combo := range combinations {
 		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
 		comboFlavours := combosOfString(combo, 1)
@@ -458,7 +461,6 @@ func nakeds() bool {
 
 // If two or more cells are the only ones to contain a combo then any other possibles can be removed from those cells.
 func hiddens() bool {
-	fmt.Println("=== Hiddens")
 	for index, block := range blocks {
 		possibles := block.possibles()
 		combinations := combosOfString(possibles, 2)
@@ -487,7 +489,6 @@ func hiddens() bool {
 
 // If 2 or 3 cells in a box have a possible only in the same row/col then it can be removed from the rest of that row/col.
 func pointingPairs() bool {
-	fmt.Println("=== Pointing Pairs")
 	for i, box := range boxes {
 		cellInBox := func(cell *Cell) bool {
 			return cell.box == i
@@ -535,7 +536,6 @@ func pointingPairs() bool {
 
 // If 2 or 3 cells in a row/col have a possible only in the same box then it can be removed from the rest of that box.
 func boxLineReduction() bool {
-	fmt.Println("=== Box Line Reduction")
 	for i, row := range rows {
 		cellInRow := func(cell *Cell) bool {
 			return cell.row == i
@@ -587,7 +587,6 @@ func boxLineReduction() bool {
 //
 // Repeat swapping rows and colums.
 func xwing() bool {
-	fmt.Println("=== XWing")
 	combos := combosOfInt(indexes, 2)
 	for _, possible := range numbers {
 		for _, combo := range combos {
@@ -649,6 +648,103 @@ func xwing() bool {
 	return false
 }
 
+// Swordfish is the 3 row/col variant of XWing.
+func swordfish() bool {
+	combos := combosOfInt(indexes, 3)
+	for _, possible := range numbers {
+		for _, combo := range combos {
+			matchedRows := []int{}
+			for i, row := range rows {
+				matchedCells := row.filterHasPossible(possible)
+				if len(matchedCells) == 3 &&
+					matchedCells[0].col == combo[0] &&
+					matchedCells[1].col == combo[1] &&
+					matchedCells[2].col == combo[2] {
+					matchedRows = append(matchedRows, i)
+				} else if len(matchedCells) == 2 &&
+					matchedCells[0].col == combo[0] &&
+					matchedCells[1].col == combo[1] {
+					matchedRows = append(matchedRows, i)
+				} else if len(matchedCells) == 2 &&
+					matchedCells[0].col == combo[1] &&
+					matchedCells[1].col == combo[2] {
+					matchedRows = append(matchedRows, i)
+				} else if len(matchedCells) == 2 &&
+					matchedCells[0].col == combo[0] &&
+					matchedCells[1].col == combo[2] {
+					matchedRows = append(matchedRows, i)
+				}
+			}
+			if len(matchedRows) == 3 {
+				others := Cells{}
+				for _, cell := range cols[combo[0]] {
+					others = append(others, cell)
+				}
+				for _, cell := range cols[combo[1]] {
+					others = append(others, cell)
+				}
+				for _, cell := range cols[combo[2]] {
+					others = append(others, cell)
+				}
+				inRow := func(cell *Cell) bool {
+					return cell.inRow(matchedRows[0]) || cell.inRow(matchedRows[1]) || cell.inRow(matchedRows[2])
+				}
+				others = others.filterExclude(inRow)
+				if others.remove([]string{possible}) {
+					fmt.Printf("Swordfish %v in rows %v,%v,%v cols %v,%v,%v\n", possible, matchedRows[0]+1, matchedRows[1]+1, matchedRows[2]+1,
+						combo[0]+1, combo[1]+1, combo[2]+1)
+					return true
+				}
+			}
+
+			matchedCols := []int{}
+			for i, col := range cols {
+				matchedCells := col.filterHasPossible(possible)
+				if len(matchedCells) == 3 &&
+					matchedCells[0].row == combo[0] &&
+					matchedCells[1].row == combo[1] &&
+					matchedCells[2].row == combo[2] {
+					matchedCols = append(matchedCols, i)
+				} else if len(matchedCells) == 2 &&
+					matchedCells[0].row == combo[0] &&
+					matchedCells[1].row == combo[1] {
+					matchedCols = append(matchedCols, i)
+				} else if len(matchedCells) == 2 &&
+					matchedCells[0].row == combo[1] &&
+					matchedCells[1].row == combo[2] {
+					matchedCols = append(matchedCols, i)
+				} else if len(matchedCells) == 2 &&
+					matchedCells[0].row == combo[0] &&
+					matchedCells[1].row == combo[2] {
+					matchedCols = append(matchedCols, i)
+				}
+			}
+			if len(matchedCols) == 3 {
+				others := Cells{}
+				for _, cell := range rows[combo[0]] {
+					others = append(others, cell)
+				}
+				for _, cell := range rows[combo[1]] {
+					others = append(others, cell)
+				}
+				for _, cell := range rows[combo[2]] {
+					others = append(others, cell)
+				}
+				inCol := func(cell *Cell) bool {
+					return cell.inCol(matchedCols[0]) || cell.inCol(matchedCols[1]) || cell.inCol(matchedCols[2])
+				}
+				others = others.filterExclude(inCol)
+				if others.remove([]string{possible}) {
+					fmt.Printf("Swordfish %v in cols %v,%v,%v rows %v,%v,%v\n", possible, matchedCols[0]+1, matchedCols[1]+1, matchedCols[2]+1,
+						combo[0]+1, combo[1]+1, combo[2]+1)
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func solvePuzzle(puzzle string) (bool, string) {
 	strategies := []func() bool{
 		singles,
@@ -657,11 +753,11 @@ func solvePuzzle(puzzle string) (bool, string) {
 		pointingPairs,
 		boxLineReduction,
 		xwing,
+		swordfish,
 	}
 	parse(puzzle)
 	printb()
 	removeSolved()
-	printb()
 	if boardSolved() {
 		fmt.Println("Done !!!")
 		return true, solution()
@@ -679,7 +775,6 @@ func solvePuzzle(puzzle string) (bool, string) {
 			if found {
 				printb()
 				removeSolved()
-				printb()
 				if boardSolved() {
 					fmt.Println("Done !!!")
 					return true, solution()
