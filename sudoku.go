@@ -33,6 +33,10 @@ type Cell struct {
 type Cells []*Cell
 
 // --- Methods of Cell ---
+func (cell Cell) String() string {
+	return fmt.Sprintf("C:%v,%v", cell.row+1, cell.col+1)
+}
+
 func (cell Cell) solved() bool {
 	return len(cell.possibles) == 1
 }
@@ -133,6 +137,27 @@ func (cell *Cell) hasAnyOf(possibles []string) bool {
 		}
 	}
 	return false
+}
+
+func (cell *Cell) canSee(chain Cells) int {
+	canSeeOdd := false
+	canSeeEven := false
+	for index, c := range chain {
+		if cell.col == c.col || cell.row == c.row || cell.box == c.box {
+			if index%2 == 0 {
+				canSeeEven = true
+			} else {
+				canSeeOdd = true
+			}
+		}
+	}
+	if canSeeOdd && canSeeEven {
+		return 2
+	} else if canSeeOdd || canSeeEven {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 // --- Methods of Cells ---
@@ -746,6 +771,90 @@ func swordfish() bool {
 	return false
 }
 
+// All pairs of possibles are grouped into chains. These are then coloured in alternate colours for odd/even.
+// Any possible outside the chain that can see two different colours can be removed.
+//
+// TODO: Handle complex chains
+func simplecolouring() bool {
+	for _, possible := range numbers {
+		pairs := []Cells{}
+		for _, block := range blocks {
+			matches := block.filterHasPossible(possible)
+			if len(matches) == 2 {
+				pairs = append(pairs, matches)
+			}
+		}
+		if len(pairs) < 2 {
+			return false
+		}
+		// assign the pairs to chains
+		chains := []Cells{}
+		for _, pair := range pairs {
+			matchingChain := -1
+			for index, chain := range chains {
+				lastCell := chain[len(chain)-1]
+				if pair[0] == lastCell || pair[1] == lastCell {
+					matchingChain = index
+				}
+			}
+			if matchingChain == -1 {
+				chains = append(chains, Cells{pair[0], pair[1]})
+			} else {
+				chain := chains[matchingChain]
+				lastCell := chain[len(chain)-1]
+				secondLastCell := chain[len(chain)-2]
+				if pair[0] == lastCell && pair[1] == secondLastCell {
+					// duplicate - ignore
+				} else if pair[1] == lastCell && pair[0] == secondLastCell {
+					// duplicate - ignore
+				} else if pair[1] == lastCell {
+					chains[matchingChain] = append(chains[matchingChain], pair[0])
+				} else {
+					chains[matchingChain] = append(chains[matchingChain], pair[1])
+				}
+			}
+		}
+		// filter out chains that are not more than 2 cells
+		longChains := []Cells{}
+		for _, chain := range chains {
+			if len(chain) > 2 {
+				longChains = append(longChains, chain)
+			}
+		}
+		chains = longChains
+		if len(chains) > 0 {
+			fmt.Printf("Simple Colouring %v: Chains %v\n", possible, chains)
+		}
+		for _, chain := range chains {
+			others := Cells{}
+			for _, row := range rows {
+				cells := row.filterHasPossible(possible)
+				for _, cell := range cells {
+					others = append(others, cell)
+				}
+			}
+			inChain := func(cell *Cell) bool {
+				for _, c := range chain {
+					if cell == c {
+						return true
+					}
+				}
+				return false
+			}
+			others = others.filterExclude(inChain)
+			for _, other := range others {
+				if other.canSee(chain) == 2 {
+					fmt.Printf("Simple Colouring %v: %v can see two colours in %v\n", possible, other, chain)
+					other.removePossible(possible)
+					return true
+				}
+			}
+
+		}
+	}
+	return false
+}
+
 func solvePuzzle(puzzle string) (bool, string) {
 	strategies := []func() bool{
 		singles,
@@ -755,6 +864,7 @@ func solvePuzzle(puzzle string) (bool, string) {
 		boxLineReduction,
 		xwing,
 		swordfish,
+		simplecolouring,
 	}
 	parse(puzzle)
 	printb()
