@@ -32,6 +32,15 @@ type Cell struct {
 // Cells is a group of cells. This could be all the cells in a row, column, or box.
 type Cells []*Cell
 
+// Chain is a sequence of cell pairs that are connected.
+// At most there can be 3 links. One per row, col, and box.
+// Links in a chain alternate between two colours.
+type Chain struct {
+	cell   *Cell
+	colour int
+	links  []Chain
+}
+
 // --- Methods of Cell ---
 func (cell Cell) String() string {
 	return fmt.Sprintf("C:%v,%v", cell.row+1, cell.col+1)
@@ -139,25 +148,15 @@ func (cell *Cell) hasAnyOf(possibles []string) bool {
 	return false
 }
 
-func (cell *Cell) canSee(chain Cells) int {
-	canSeeOdd := false
-	canSeeEven := false
-	for index, c := range chain {
-		if cell.col == c.col || cell.row == c.row || cell.box == c.box {
-			if index%2 == 0 {
-				canSeeEven = true
-			} else {
-				canSeeOdd = true
-			}
-		}
+func (cell *Cell) canSee(chain Chain) int {
+	result := 0
+	if cell.col == chain.cell.col || cell.row == chain.cell.row || cell.box == chain.cell.box {
+		result = result | chain.colour
 	}
-	if canSeeOdd && canSeeEven {
-		return 2
-	} else if canSeeOdd || canSeeEven {
-		return 1
-	} else {
-		return 0
+	for _, link := range chain.links {
+		result = result | cell.canSee(link)
 	}
+	return result
 }
 
 // --- Methods of Cells ---
@@ -214,6 +213,29 @@ func (cells Cells) possibles() []string {
 	return unique(result)
 }
 
+//------- Methods of Chain -----------
+
+func (chain Chain) String() string {
+	return fmt.Sprintf("%v, colour %v,->%v", chain.cell, chain.colour, chain.links)
+}
+
+func (chain Chain) hasCell(cell *Cell) bool {
+	return chain.findCell(cell) != nil
+}
+
+func (chain *Chain) findCell(cell *Cell) *Chain {
+	if chain.cell == cell {
+		return chain
+	}
+	for _, link := range chain.links {
+		c := link.findCell(cell)
+		if c != nil {
+			return c
+		}
+	}
+	return nil
+}
+
 //------- General functions ----------
 
 func unique(values []string) []string {
@@ -235,6 +257,13 @@ func solution() string {
 		solution += strings.Join(cell.possibles, "")
 	}
 	return solution
+}
+
+func appendCells(c1 []Cells, c2 []Cells) []Cells {
+	for _, c := range c2 {
+		c1 = append(c1, c)
+	}
+	return c1
 }
 
 //-------------------------------------------
@@ -787,41 +816,7 @@ func simplecolouring() bool {
 		if len(pairs) < 2 {
 			return false
 		}
-		// assign the pairs to chains
-		chains := []Cells{}
-		for _, pair := range pairs {
-			matchingChain := -1
-			for index, chain := range chains {
-				lastCell := chain[len(chain)-1]
-				if pair[0] == lastCell || pair[1] == lastCell {
-					matchingChain = index
-				}
-			}
-			if matchingChain == -1 {
-				chains = append(chains, Cells{pair[0], pair[1]})
-			} else {
-				chain := chains[matchingChain]
-				lastCell := chain[len(chain)-1]
-				secondLastCell := chain[len(chain)-2]
-				if pair[0] == lastCell && pair[1] == secondLastCell {
-					// duplicate - ignore
-				} else if pair[1] == lastCell && pair[0] == secondLastCell {
-					// duplicate - ignore
-				} else if pair[1] == lastCell {
-					chains[matchingChain] = append(chains[matchingChain], pair[0])
-				} else {
-					chains[matchingChain] = append(chains[matchingChain], pair[1])
-				}
-			}
-		}
-		// filter out chains that are not more than 2 cells
-		longChains := []Cells{}
-		for _, chain := range chains {
-			if len(chain) > 2 {
-				longChains = append(longChains, chain)
-			}
-		}
-		chains = longChains
+		chains := createChainsFrom(pairs)
 		if len(chains) > 0 {
 			fmt.Printf("Simple Colouring %v: Chains %v\n", possible, chains)
 		}
@@ -833,17 +828,10 @@ func simplecolouring() bool {
 					others = append(others, cell)
 				}
 			}
-			inChain := func(cell *Cell) bool {
-				for _, c := range chain {
-					if cell == c {
-						return true
-					}
-				}
-				return false
-			}
-			others = others.filterExclude(inChain)
+			others = others.filterExclude(func(cell *Cell) bool { return chain.hasCell(cell) })
+			fmt.Printf("Simple Colouring %v: others %v\n", possible, others)
 			for _, other := range others {
-				if other.canSee(chain) == 2 {
+				if other.canSee(chain) == 3 {
 					fmt.Printf("Simple Colouring %v: %v can see two colours in %v\n", possible, other, chain)
 					other.removePossible(possible)
 					return true
@@ -853,6 +841,49 @@ func simplecolouring() bool {
 		}
 	}
 	return false
+}
+
+func createChainsFrom(pairs []Cells) []Chain {
+	// assign the pairs to chains
+	chains := []Chain{}
+	for len(pairs) > 0 {
+		matchedChain := false
+		for _, chain := range chains {
+			for i, pair := range pairs {
+				c1 := chain.findCell(pair[0])
+				c2 := chain.findCell(pair[1])
+				if c1 != nil {
+					if c1.colour == 1 {
+						c1.links = append(c1.links, Chain{cell: pair[1], colour: 2, links: []Chain{}})
+					} else {
+						c1.links = append(c1.links, Chain{cell: pair[1], colour: 1, links: []Chain{}})
+					}
+				} else if c2 != nil {
+					if c2.colour == 1 {
+						c2.links = append(c2.links, Chain{cell: pair[0], colour: 2, links: []Chain{}})
+					} else {
+						c2.links = append(c2.links, Chain{cell: pair[0], colour: 1, links: []Chain{}})
+					}
+				}
+				if c1 != nil || c2 != nil {
+					matchedChain = true
+					left := pairs[:i]
+					right := pairs[i+1:]
+					pairs = appendCells(left, right)
+					break
+				}
+			}
+		}
+		if !matchedChain {
+			pair := pairs[0]
+			pairs = pairs[1:]
+			c1 := Chain{cell: pair[0], colour: 1, links: []Chain{}}
+			c2 := Chain{cell: pair[1], colour: 2, links: []Chain{}}
+			c1.links = append(c1.links, c2)
+			chains = append(chains, c1)
+		}
+	}
+	return chains
 }
 
 func solvePuzzle(puzzle string) (bool, string) {
@@ -925,7 +956,7 @@ func main() {
 
 	status := ""
 
-	puzzles, done := loadFile("top95.txt")
+	puzzles, done := loadFile("testSimpleColouring.txt")
 	if done {
 		return
 	}
