@@ -150,8 +150,10 @@ func (cell *Cell) hasAnyOf(possibles []string) bool {
 
 func (cell *Cell) canSee(chain Chain) int {
 	result := 0
-	if cell.col == chain.cell.col || cell.row == chain.cell.row || cell.box == chain.cell.box {
-		result = result | chain.colour
+	if cell != chain.cell {
+		if cell.col == chain.cell.col || cell.row == chain.cell.row || cell.box == chain.cell.box {
+			result = result | chain.colour
+		}
 	}
 	for _, link := range chain.links {
 		result = result | cell.canSee(link)
@@ -216,7 +218,7 @@ func (cells Cells) possibles() []string {
 //------- Methods of Chain -----------
 
 func (chain Chain) String() string {
-	return fmt.Sprintf("%v, colour %v,->%v", chain.cell, chain.colour, chain.links)
+	return fmt.Sprintf("%v,c%v,->%v", chain.cell, chain.colour, chain.links)
 }
 
 func (chain Chain) hasCell(cell *Cell) bool {
@@ -227,8 +229,8 @@ func (chain *Chain) findCell(cell *Cell) *Chain {
 	if chain.cell == cell {
 		return chain
 	}
-	for _, link := range chain.links {
-		c := link.findCell(cell)
+	for linkIndex := range chain.links {
+		c := chain.links[linkIndex].findCell(cell)
 		if c != nil {
 			return c
 		}
@@ -801,9 +803,8 @@ func swordfish() bool {
 }
 
 // All pairs of possibles are grouped into chains. These are then coloured in alternate colours for odd/even.
-// Any possible outside the chain that can see two different colours can be removed.
-//
-// TODO: Handle complex chains
+// Any cell that can see two different colours can be removed.
+// This includes cells in the chain but a cell cannot see itself.
 func simplecolouring() bool {
 	for _, possible := range numbers {
 		pairs := []Cells{}
@@ -817,27 +818,17 @@ func simplecolouring() bool {
 			return false
 		}
 		chains := createChainsFrom(pairs)
-		if len(chains) > 0 {
-			fmt.Printf("Simple Colouring %v: Chains %v\n", possible, chains)
-		}
 		for _, chain := range chains {
-			others := Cells{}
 			for _, row := range rows {
 				cells := row.filterHasPossible(possible)
 				for _, cell := range cells {
-					others = append(others, cell)
+					if cell.canSee(chain) == 3 {
+						fmt.Printf("Simple Colouring %v: %v can see two colours in %v\n", possible, cell, chain)
+						cell.removePossible(possible)
+						return true
+					}
 				}
 			}
-			others = others.filterExclude(func(cell *Cell) bool { return chain.hasCell(cell) })
-			fmt.Printf("Simple Colouring %v: others %v\n", possible, others)
-			for _, other := range others {
-				if other.canSee(chain) == 3 {
-					fmt.Printf("Simple Colouring %v: %v can see two colours in %v\n", possible, other, chain)
-					other.removePossible(possible)
-					return true
-				}
-			}
-
 		}
 	}
 	return false
@@ -848,10 +839,10 @@ func createChainsFrom(pairs []Cells) []Chain {
 	chains := []Chain{}
 	for len(pairs) > 0 {
 		matchedChain := false
-		for _, chain := range chains {
+		for chainIndex := range chains {
 			for i, pair := range pairs {
-				c1 := chain.findCell(pair[0])
-				c2 := chain.findCell(pair[1])
+				c1 := chains[chainIndex].findCell(pair[0])
+				c2 := chains[chainIndex].findCell(pair[1])
 				if c1 != nil {
 					if c1.colour == 1 {
 						c1.links = append(c1.links, Chain{cell: pair[1], colour: 2, links: []Chain{}})
@@ -956,7 +947,7 @@ func main() {
 
 	status := ""
 
-	puzzles, done := loadFile("testSimpleColouring.txt")
+	puzzles, done := loadFile("top95.txt")
 	if done {
 		return
 	}
@@ -976,7 +967,7 @@ func main() {
 			status += "S"
 			solved++
 			if solution != expected[index] {
-				fmt.Println("Incorrect solution")
+				fmt.Printf("Incorrect solution in puzzle %v\n", index+1)
 				fmt.Println(solution)
 				fmt.Println(expected[index])
 				return
