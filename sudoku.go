@@ -14,8 +14,11 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
+	"log"
 	"os"
+	"runtime/pprof"
 	"sort"
 	"strings"
 )
@@ -478,15 +481,26 @@ func singles() bool {
 	return false
 }
 
+func sliceOfStringsEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // If two or more cells are the only ones to contain a combo then the combo can be removed from other cells.
 func nakeds() bool {
 	for _, combo := range combinations {
 		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
 		comboFlavours := combosOfString(combo, 1)
 		hasCombo := func(cell *Cell) bool {
-			possibles := strings.Join(cell.possibles, "")
 			for _, c := range comboFlavours {
-				if possibles == strings.Join(c, "") {
+				if sliceOfStringsEqual(c, cell.possibles) {
 					return true
 				}
 			}
@@ -944,6 +958,20 @@ func loadFile(name string) ([]string, bool) {
 }
 
 func main() {
+
+	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 
 	status := ""
 
