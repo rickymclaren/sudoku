@@ -85,7 +85,7 @@ func (cell *Cell) removePossible(value string) bool {
 	if cell.solved() {
 		return false
 	}
-	newPossibles := []string{}
+	newPossibles := make([]string, 0, 9)
 	result := false
 	for _, possible := range cell.possibles {
 		if possible == value {
@@ -187,7 +187,7 @@ func (cells Cells) filterInclude(include func(*Cell) bool) Cells {
 }
 
 func (cells Cells) filterExclude(include func(*Cell) bool) Cells {
-	result := []*Cell{}
+	result := make([]*Cell, 0, 9)
 	for _, c := range cells {
 		if !include(c) {
 			result = append(result, c)
@@ -197,7 +197,7 @@ func (cells Cells) filterExclude(include func(*Cell) bool) Cells {
 }
 
 func (cells Cells) filterHasPossible(s string) Cells {
-	result := []*Cell{}
+	result := make([]*Cell, 0, 9)
 	for _, c := range cells {
 		if c.hasPossible(s) {
 			result = append(result, c)
@@ -207,7 +207,7 @@ func (cells Cells) filterHasPossible(s string) Cells {
 }
 
 func (cells Cells) possibles() []string {
-	result := []string{}
+	result := make([]string, 0, 9)
 	for _, cell := range cells {
 		if !cell.solved() {
 			for _, possible := range cell.possibles {
@@ -244,7 +244,7 @@ func (chain *Chain) findCell(cell *Cell) *Chain {
 //------- General functions ----------
 
 func unique(values []string) []string {
-	result := []string{}
+	result := make([]string, 0, 9)
 	m := make(map[string]bool)
 	for _, value := range values {
 		m[value] = true
@@ -338,7 +338,7 @@ func combosOfString(elems []string, min int) [][]string {
 	result := [][]string{}
 	n := len(elems)
 	for num := 0; num < (1 << uint(n)); num++ {
-		combination := []string{}
+		combination := make([]string, 0, 9)
 		for ndx := 0; ndx < n; ndx++ {
 			// (is the bit "on" in this number?)
 			if num&(1<<uint(ndx)) != 0 {
@@ -357,7 +357,7 @@ func combosOfInt(elems []int, size int) [][]int {
 	result := [][]int{}
 	n := len(elems)
 	for num := 0; num < (1 << uint(n)); num++ {
-		combination := []int{}
+		combination := make([]int, 0, 9)
 		for ndx := 0; ndx < n; ndx++ {
 			// (is the bit "on" in this number?)
 			if num&(1<<uint(ndx)) != 0 {
@@ -428,22 +428,12 @@ func nameOfBlock(block int) string {
 	}
 }
 
-func signatureOfBlock(i int) string {
-	block := blocks[i]
-	result := nameOfBlock(i) + ":"
-	for _, cell := range block {
-		result += strings.Join(cell.possibles, "") + "|"
-	}
-	return result
-}
-
 func removeSolved() {
 	removed := false
 	found := true
 	for found {
 		found = false
-		for i, block := range blocks {
-			oldSignature := signatureOfBlock(i)
+		for _, block := range blocks {
 			solved := []string{}
 			for _, cell := range block {
 				if cell.solved() {
@@ -453,10 +443,6 @@ func removeSolved() {
 			if block.remove(solved) {
 				found = true
 				removed = true
-			}
-			newSignature := signatureOfBlock(i)
-			if newSignature != oldSignature {
-				// fmt.Printf("%s -> %s\n", oldSignature, newSignature)
 			}
 		}
 	}
@@ -495,18 +481,20 @@ func sliceOfStringsEqual(a, b []string) bool {
 
 // If two or more cells are the only ones to contain a combo then the combo can be removed from other cells.
 func nakeds() bool {
-	for _, combo := range combinations {
-		// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
-		comboFlavours := combosOfString(combo, 1)
-		hasCombo := func(cell *Cell) bool {
-			for _, c := range comboFlavours {
-				if sliceOfStringsEqual(c, cell.possibles) {
-					return true
+	for index, block := range blocks {
+		possibles := block.possibles()
+		combinations := combosOfString(possibles, 2)
+		for _, combo := range combinations {
+			// Need to match combo is [1,2,3] and value is [1] or [2,3] etc.
+			comboFlavours := combosOfString(combo, 1)
+			hasCombo := func(cell *Cell) bool {
+				for _, c := range comboFlavours {
+					if sliceOfStringsEqual(c, cell.possibles) {
+						return true
+					}
 				}
+				return false
 			}
-			return false
-		}
-		for index, block := range blocks {
 			matches := block.filterInclude(hasCombo)
 			if len(matches) == len(combo) {
 				inMatches := func(cell *Cell) bool {
