@@ -127,18 +127,6 @@ func (cell *Cell) removePossiblesApartFrom(values []string) bool {
 	return result
 }
 
-func (cell *Cell) hasAllOf(possibles []string) bool {
-	if cell.solved() {
-		return false
-	}
-	for _, possible := range possibles {
-		if !cell.hasPossible(possible) {
-			return false
-		}
-	}
-	return true
-}
-
 func (cell *Cell) hasAnyOf(possibles []string) bool {
 	if cell.solved() {
 		return false
@@ -262,13 +250,6 @@ func solution() string {
 		solution += strings.Join(cell.possibles, "")
 	}
 	return solution
-}
-
-func appendCells(c1 []Cells, c2 []Cells) []Cells {
-	for _, c := range c2 {
-		c1 = append(c1, c)
-	}
-	return c1
 }
 
 //-------------------------------------------
@@ -860,9 +841,7 @@ func createChainsFrom(pairs []Cells) []Chain {
 				}
 				if c1 != nil || c2 != nil {
 					matchedChain = true
-					left := pairs[:i]
-					right := pairs[i+1:]
-					pairs = appendCells(left, right)
+					pairs = append(pairs[:i], pairs[i+1:]...)
 					break
 				}
 			}
