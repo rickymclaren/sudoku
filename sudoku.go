@@ -45,23 +45,23 @@ type Chain struct {
 }
 
 // --- Methods of Cell ---
-func (cell Cell) String() string {
+func (cell *Cell) String() string {
 	return fmt.Sprintf("C:%v,%v", cell.row+1, cell.col+1)
 }
 
-func (cell Cell) solved() bool {
+func (cell *Cell) solved() bool {
 	return len(cell.possibles) == 1
 }
 
-func (cell Cell) inRow(row int) bool {
+func (cell *Cell) inRow(row int) bool {
 	return cell.row == row
 }
 
-func (cell Cell) inCol(col int) bool {
+func (cell *Cell) inCol(col int) bool {
 	return cell.col == col
 }
 
-func (cell Cell) inBox(box int) bool {
+func (cell *Cell) inBox(box int) bool {
 	return cell.box == box
 }
 
@@ -154,9 +154,9 @@ func (cell *Cell) canSee(chain Chain) int {
 
 // --- Methods of Cells ---
 
-func (cells Cells) remove(values []string) bool {
+func (cells *Cells) remove(values []string) bool {
 	found := false
-	for _, cell := range cells {
+	for _, cell := range *cells {
 		if cell.removePossibles(values) {
 			found = true
 		}
@@ -164,9 +164,9 @@ func (cells Cells) remove(values []string) bool {
 	return found
 }
 
-func (cells Cells) filterInclude(include func(*Cell) bool) Cells {
+func (cells *Cells) filterInclude(include func(*Cell) bool) Cells {
 	result := []*Cell{}
-	for _, c := range cells {
+	for _, c := range *cells {
 		if include(c) {
 			result = append(result, c)
 		}
@@ -174,9 +174,9 @@ func (cells Cells) filterInclude(include func(*Cell) bool) Cells {
 	return result
 }
 
-func (cells Cells) filterExclude(include func(*Cell) bool) Cells {
+func (cells *Cells) filterExclude(include func(*Cell) bool) Cells {
 	result := make([]*Cell, 0, 9)
-	for _, c := range cells {
+	for _, c := range *cells {
 		if !include(c) {
 			result = append(result, c)
 		}
@@ -184,9 +184,9 @@ func (cells Cells) filterExclude(include func(*Cell) bool) Cells {
 	return result
 }
 
-func (cells Cells) filterHasPossible(s string) Cells {
+func (cells *Cells) filterHasPossible(s string) Cells {
 	result := make([]*Cell, 0, 9)
-	for _, c := range cells {
+	for _, c := range *cells {
 		if c.hasPossible(s) {
 			result = append(result, c)
 		}
@@ -194,9 +194,9 @@ func (cells Cells) filterHasPossible(s string) Cells {
 	return result
 }
 
-func (cells Cells) possibles() []string {
+func (cells *Cells) possibles() []string {
 	result := make([]string, 0, 9)
-	for _, cell := range cells {
+	for _, cell := range *cells {
 		if !cell.solved() {
 			for _, possible := range cell.possibles {
 				result = append(result, possible)
@@ -208,11 +208,11 @@ func (cells Cells) possibles() []string {
 
 //------- Methods of Chain -----------
 
-func (chain Chain) String() string {
+func (chain *Chain) String() string {
 	return fmt.Sprintf("%v,c%v,->%v", chain.cell, chain.colour, chain.links)
 }
 
-func (chain Chain) hasCell(cell *Cell) bool {
+func (chain *Chain) hasCell(cell *Cell) bool {
 	return chain.findCell(cell) != nil
 }
 
@@ -242,74 +242,6 @@ func unique(values []string) []string {
 	}
 	sort.Strings(result)
 	return result
-}
-
-func solution() string {
-	solution := ""
-	for _, cell := range b {
-		solution += strings.Join(cell.possibles, "")
-	}
-	return solution
-}
-
-//-------------------------------------------
-
-var b [81]Cell
-var rows = []Cells{
-	{&b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6], &b[7], &b[8]},
-	{&b[9], &b[10], &b[11], &b[12], &b[13], &b[14], &b[15], &b[16], &b[17]},
-	{&b[18], &b[19], &b[20], &b[21], &b[22], &b[23], &b[24], &b[25], &b[26]},
-	{&b[27], &b[28], &b[29], &b[30], &b[31], &b[32], &b[33], &b[34], &b[35]},
-	{&b[36], &b[37], &b[38], &b[39], &b[40], &b[41], &b[42], &b[43], &b[44]},
-	{&b[45], &b[46], &b[47], &b[48], &b[49], &b[50], &b[51], &b[52], &b[53]},
-	{&b[54], &b[55], &b[56], &b[57], &b[58], &b[59], &b[60], &b[61], &b[62]},
-	{&b[63], &b[64], &b[65], &b[66], &b[67], &b[68], &b[69], &b[70], &b[71]},
-	{&b[72], &b[73], &b[74], &b[75], &b[76], &b[77], &b[78], &b[79], &b[80]},
-}
-var cols = []Cells{
-	{&b[0], &b[9], &b[18], &b[27], &b[36], &b[45], &b[54], &b[63], &b[72]},
-	{&b[1], &b[10], &b[19], &b[28], &b[37], &b[46], &b[55], &b[64], &b[73]},
-	{&b[2], &b[11], &b[20], &b[29], &b[38], &b[47], &b[56], &b[65], &b[74]},
-	{&b[3], &b[12], &b[21], &b[30], &b[39], &b[48], &b[57], &b[66], &b[75]},
-	{&b[4], &b[13], &b[22], &b[31], &b[40], &b[49], &b[58], &b[67], &b[76]},
-	{&b[5], &b[14], &b[23], &b[32], &b[41], &b[50], &b[59], &b[68], &b[77]},
-	{&b[6], &b[15], &b[24], &b[33], &b[42], &b[51], &b[60], &b[69], &b[78]},
-	{&b[7], &b[16], &b[25], &b[34], &b[43], &b[52], &b[61], &b[70], &b[79]},
-	{&b[8], &b[17], &b[26], &b[35], &b[44], &b[53], &b[62], &b[71], &b[80]},
-}
-var boxes = []Cells{
-	{&b[0], &b[1], &b[2], &b[9], &b[10], &b[11], &b[18], &b[19], &b[20]},
-	{&b[3], &b[4], &b[5], &b[12], &b[13], &b[14], &b[21], &b[22], &b[23]},
-	{&b[6], &b[7], &b[8], &b[15], &b[16], &b[17], &b[24], &b[25], &b[26]},
-	{&b[27], &b[28], &b[29], &b[36], &b[37], &b[38], &b[45], &b[46], &b[47]},
-	{&b[30], &b[31], &b[32], &b[39], &b[40], &b[41], &b[48], &b[49], &b[50]},
-	{&b[33], &b[34], &b[35], &b[42], &b[43], &b[44], &b[51], &b[52], &b[53]},
-	{&b[54], &b[55], &b[56], &b[63], &b[64], &b[65], &b[72], &b[73], &b[74]},
-	{&b[57], &b[58], &b[59], &b[66], &b[67], &b[68], &b[75], &b[76], &b[77]},
-	{&b[60], &b[61], &b[62], &b[69], &b[70], &b[71], &b[78], &b[79], &b[80]},
-}
-var blocks = []Cells{}
-var numbers []string = strings.Split("123456789", "")
-var indexes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-var combinations = [][]string{}
-
-func init() {
-	for i := range b {
-		row := i / 9
-		col := i % 9
-		box := (row / 3 * 3) + col/3
-		b[i] = Cell{possibles: numbers, row: row, col: col, box: box}
-	}
-	for _, row := range rows {
-		blocks = append(blocks, row)
-	}
-	for _, col := range cols {
-		blocks = append(blocks, col)
-	}
-	for _, box := range boxes {
-		blocks = append(blocks, box)
-	}
-	combinations = combosOfString(numbers, 2)
 }
 
 // Found on topcoder
@@ -353,35 +285,147 @@ func combosOfInt(elems []int, size int) [][]int {
 	return result
 }
 
-func parse(s string) {
+func nameOfBlock(block int) string {
+	if block < 9 {
+		return fmt.Sprintf("Row %v", block+1)
+	} else if block < 18 {
+		return fmt.Sprintf("Col %v", block-9+1)
+	} else {
+		return fmt.Sprintf("Box %v", block-18+1)
+	}
+}
+
+func sliceOfStringsEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+//-------------------------------------------
+
+var numbers []string = strings.Split("123456789", "")
+var indexes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
+var combinations = combosOfString(numbers, 2)
+
+type Board struct {
+	cells  [81]Cell
+	rows   [9]Cells
+	cols   [9]Cells
+	boxes  [9]Cells
+	blocks []Cells
+}
+
+// --- Methods of Board ---
+
+func (b *Board) init() {
+	for i := range b.cells {
+		row := i / 9
+		col := i % 9
+		box := (row / 3 * 3) + col/3
+		b.cells[i] = Cell{possibles: numbers, row: row, col: col, box: box}
+	}
+
+	b.cols = [9]Cells{
+		{&b.cells[0], &b.cells[9], &b.cells[18], &b.cells[27], &b.cells[36], &b.cells[45], &b.cells[54], &b.cells[63], &b.cells[72]},
+		{&b.cells[1], &b.cells[10], &b.cells[19], &b.cells[28], &b.cells[37], &b.cells[46], &b.cells[55], &b.cells[64], &b.cells[73]},
+		{&b.cells[2], &b.cells[11], &b.cells[20], &b.cells[29], &b.cells[38], &b.cells[47], &b.cells[56], &b.cells[65], &b.cells[74]},
+		{&b.cells[3], &b.cells[12], &b.cells[21], &b.cells[30], &b.cells[39], &b.cells[48], &b.cells[57], &b.cells[66], &b.cells[75]},
+		{&b.cells[4], &b.cells[13], &b.cells[22], &b.cells[31], &b.cells[40], &b.cells[49], &b.cells[58], &b.cells[67], &b.cells[76]},
+		{&b.cells[5], &b.cells[14], &b.cells[23], &b.cells[32], &b.cells[41], &b.cells[50], &b.cells[59], &b.cells[68], &b.cells[77]},
+		{&b.cells[6], &b.cells[15], &b.cells[24], &b.cells[33], &b.cells[42], &b.cells[51], &b.cells[60], &b.cells[69], &b.cells[78]},
+		{&b.cells[7], &b.cells[16], &b.cells[25], &b.cells[34], &b.cells[43], &b.cells[52], &b.cells[61], &b.cells[70], &b.cells[79]},
+		{&b.cells[8], &b.cells[17], &b.cells[26], &b.cells[35], &b.cells[44], &b.cells[53], &b.cells[62], &b.cells[71], &b.cells[80]},
+	}
+	b.boxes = [9]Cells{
+		{&b.cells[0], &b.cells[1], &b.cells[2], &b.cells[9], &b.cells[10], &b.cells[11], &b.cells[18], &b.cells[19], &b.cells[20]},
+		{&b.cells[3], &b.cells[4], &b.cells[5], &b.cells[12], &b.cells[13], &b.cells[14], &b.cells[21], &b.cells[22], &b.cells[23]},
+		{&b.cells[6], &b.cells[7], &b.cells[8], &b.cells[15], &b.cells[16], &b.cells[17], &b.cells[24], &b.cells[25], &b.cells[26]},
+		{&b.cells[27], &b.cells[28], &b.cells[29], &b.cells[36], &b.cells[37], &b.cells[38], &b.cells[45], &b.cells[46], &b.cells[47]},
+		{&b.cells[30], &b.cells[31], &b.cells[32], &b.cells[39], &b.cells[40], &b.cells[41], &b.cells[48], &b.cells[49], &b.cells[50]},
+		{&b.cells[33], &b.cells[34], &b.cells[35], &b.cells[42], &b.cells[43], &b.cells[44], &b.cells[51], &b.cells[52], &b.cells[53]},
+		{&b.cells[54], &b.cells[55], &b.cells[56], &b.cells[63], &b.cells[64], &b.cells[65], &b.cells[72], &b.cells[73], &b.cells[74]},
+		{&b.cells[57], &b.cells[58], &b.cells[59], &b.cells[66], &b.cells[67], &b.cells[68], &b.cells[75], &b.cells[76], &b.cells[77]},
+		{&b.cells[60], &b.cells[61], &b.cells[62], &b.cells[69], &b.cells[70], &b.cells[71], &b.cells[78], &b.cells[79], &b.cells[80]},
+	}
+
+	for _, row := range b.rows {
+		b.blocks = append(b.blocks, row)
+	}
+	for _, col := range b.cols {
+		b.blocks = append(b.blocks, col)
+	}
+	for _, box := range b.boxes {
+		b.blocks = append(b.blocks, box)
+	}
+}
+
+func (b *Board) solution() string {
+	solution := ""
+	for _, cell := range b.cells {
+		solution += strings.Join(cell.possibles, "")
+	}
+	return solution
+}
+
+func (b *Board) solved() bool {
+	solved := true
+	for _, cell := range b.cells {
+		solved = solved && cell.solved()
+	}
+	return solved
+}
+
+func (b *Board) removeSolved() {
+	removed := false
+	found := true
+	for found {
+		found = false
+		for _, block := range b.blocks {
+			solved := []string{}
+			for _, cell := range block {
+				if cell.solved() {
+					solved = append(solved, cell.possibles[0])
+				}
+			}
+			if block.remove(solved) {
+				found = true
+				removed = true
+			}
+		}
+	}
+	if removed {
+		fmt.Println("Removed Solved")
+		b.print()
+	}
+}
+
+func (b *Board) parse(s string) {
 	if len(s) != 81 {
 		fmt.Printf("!!! Parse expected length 81 but got %v\n", len(s))
 	}
 	for i := 0; i < len(s); i++ {
 		c := string(s[i])
 		if c == "." {
-			b[i].possibles = numbers
+			b.cells[i].possibles = numbers
 		} else {
-			b[i].possibles = []string{c}
+			b.cells[i].possibles = []string{c}
 		}
 	}
 }
 
-func boardSolved() bool {
-	solved := true
-	for _, cell := range b {
-		solved = solved && cell.solved()
-	}
-	return solved
-}
-
-func printb() {
+func (b *Board) print() {
 	fmt.Println()
-	for i := range b {
-		if b[i].solved() {
-			fmt.Printf("%-10s", "    "+b[i].possibles[0])
+	for i := range b.cells {
+		if b.cells[i].solved() {
+			fmt.Printf("%-10s", "    "+b.cells[i].possibles[0])
 		} else {
-			fmt.Printf("%-10s", strings.Join(b[i].possibles, ""))
+			fmt.Printf("%-10s", strings.Join(b.cells[i].possibles, ""))
 		}
 
 		if i > 0 {
@@ -399,43 +443,9 @@ func printb() {
 	fmt.Println()
 }
 
-func nameOfBlock(block int) string {
-	if block < 9 {
-		return fmt.Sprintf("Row %v", block+1)
-	} else if block < 18 {
-		return fmt.Sprintf("Col %v", block-9+1)
-	} else {
-		return fmt.Sprintf("Box %v", block-18+1)
-	}
-}
-
-func removeSolved() {
-	removed := false
-	found := true
-	for found {
-		found = false
-		for _, block := range blocks {
-			solved := []string{}
-			for _, cell := range block {
-				if cell.solved() {
-					solved = append(solved, cell.possibles[0])
-				}
-			}
-			if block.remove(solved) {
-				found = true
-				removed = true
-			}
-		}
-	}
-	if removed {
-		fmt.Println("Removed Solved")
-		printb()
-	}
-}
-
 // If a cell is the only one to contain a possible then it is the solution.
-func singles() bool {
-	for index, cells := range blocks {
+func (b *Board) singles() bool {
+	for index, cells := range b.blocks {
 		for _, possible := range numbers {
 			matches := cells.filterHasPossible(possible)
 			if len(matches) == 1 {
@@ -448,21 +458,9 @@ func singles() bool {
 	return false
 }
 
-func sliceOfStringsEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 // If two or more cells are the only ones to contain a combo then the combo can be removed from other cells.
-func nakeds() bool {
-	for index, block := range blocks {
+func (b *Board) nakeds() bool {
+	for index, block := range b.blocks {
 		possibles := block.possibles()
 		combinations := combosOfString(possibles, 2)
 		for _, combo := range combinations {
@@ -499,8 +497,8 @@ func nakeds() bool {
 }
 
 // If two or more cells are the only ones to contain a combo then any other possibles can be removed from those cells.
-func hiddens() bool {
-	for index, block := range blocks {
+func (b *Board) hiddens() bool {
+	for index, block := range b.blocks {
 		possibles := block.possibles()
 		combinations := combosOfString(possibles, 2)
 		for _, combo := range combinations {
@@ -527,8 +525,8 @@ func hiddens() bool {
 }
 
 // If 2 or 3 cells in a box have a possible only in the same row/col then it can be removed from the rest of that row/col.
-func pointingPairs() bool {
-	for i, box := range boxes {
+func (b *Board) pointingPairs() bool {
+	for i, box := range b.boxes {
 		cellInBox := func(cell *Cell) bool {
 			return cell.box == i
 		}
@@ -552,7 +550,7 @@ func pointingPairs() bool {
 
 			if scanRow {
 				row := matches[0].row
-				others := rows[row].filterExclude(cellInBox)
+				others := b.rows[row].filterExclude(cellInBox)
 				if others.remove([]string{number}) {
 					fmt.Printf("Pointing pair: %v in box %v row %v\n", number, i+1, row+1)
 					return true
@@ -561,7 +559,7 @@ func pointingPairs() bool {
 
 			if scanCol {
 				col := matches[0].col
-				others := cols[col].filterExclude(cellInBox)
+				others := b.cols[col].filterExclude(cellInBox)
 				if others.remove([]string{number}) {
 					fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, col+1)
 					return true
@@ -574,8 +572,8 @@ func pointingPairs() bool {
 }
 
 // If 2 or 3 cells in a row/col have a possible only in the same box then it can be removed from the rest of that box.
-func boxLineReduction() bool {
-	for i, row := range rows {
+func (b *Board) boxLineReduction() bool {
+	for i, row := range b.rows {
 		cellInRow := func(cell *Cell) bool {
 			return cell.row == i
 		}
@@ -587,7 +585,7 @@ func boxLineReduction() bool {
 			box := matches[0].box
 			if (len(matches) == 2 && matches[1].box == box) ||
 				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
-				others := boxes[box].filterExclude(cellInRow)
+				others := b.boxes[box].filterExclude(cellInRow)
 				if others.remove([]string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
 					return true
@@ -597,7 +595,7 @@ func boxLineReduction() bool {
 		}
 	}
 
-	for i, col := range cols {
+	for i, col := range b.cols {
 		cellInCol := func(cell *Cell) bool {
 			return cell.col == i
 		}
@@ -609,7 +607,7 @@ func boxLineReduction() bool {
 			box := matches[0].box
 			if (len(matches) == 2 && matches[1].box == box) ||
 				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
-				others := boxes[box].filterExclude(cellInCol)
+				others := b.boxes[box].filterExclude(cellInCol)
 				if others.remove([]string{number}) {
 					fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
 					return true
@@ -625,12 +623,12 @@ func boxLineReduction() bool {
 // can be removed from the rest of the cells in those two columns.
 //
 // Repeat swapping rows and colums.
-func xwing() bool {
+func (b *Board) xwing() bool {
 	combos := combosOfInt(indexes, 2)
 	for _, possible := range numbers {
 		for _, combo := range combos {
 			matchedRows := []int{}
-			for i, row := range rows {
+			for i, row := range b.rows {
 				matchedCells := row.filterHasPossible(possible)
 				if len(matchedCells) == 2 &&
 					matchedCells[0].col == combo[0] &&
@@ -640,10 +638,10 @@ func xwing() bool {
 			}
 			if len(matchedRows) == 2 {
 				others := Cells{}
-				for _, cell := range cols[combo[0]] {
+				for _, cell := range b.cols[combo[0]] {
 					others = append(others, cell)
 				}
-				for _, cell := range cols[combo[1]] {
+				for _, cell := range b.cols[combo[1]] {
 					others = append(others, cell)
 				}
 				inRow := func(cell *Cell) bool {
@@ -657,7 +655,7 @@ func xwing() bool {
 			}
 
 			matchedCols := []int{}
-			for i, col := range cols {
+			for i, col := range b.cols {
 				matchedCells := col.filterHasPossible(possible)
 				if len(matchedCells) == 2 &&
 					matchedCells[0].row == combo[0] &&
@@ -667,10 +665,10 @@ func xwing() bool {
 			}
 			if len(matchedCols) == 2 {
 				others := Cells{}
-				for _, cell := range rows[combo[0]] {
+				for _, cell := range b.rows[combo[0]] {
 					others = append(others, cell)
 				}
-				for _, cell := range rows[combo[1]] {
+				for _, cell := range b.rows[combo[1]] {
 					others = append(others, cell)
 				}
 				inCol := func(cell *Cell) bool {
@@ -689,12 +687,12 @@ func xwing() bool {
 
 // Swordfish is the 3 row/col variant of XWing.
 // Note: It has to handle 3 and 2 row/col combinations.
-func swordfish() bool {
+func (b *Board) swordfish() bool {
 	combos := combosOfInt(indexes, 3)
 	for _, possible := range numbers {
 		for _, combo := range combos {
 			matchedRows := []int{}
-			for i, row := range rows {
+			for i, row := range b.rows {
 				matchedCells := row.filterHasPossible(possible)
 				if len(matchedCells) == 3 &&
 					matchedCells[0].col == combo[0] &&
@@ -717,13 +715,13 @@ func swordfish() bool {
 			}
 			if len(matchedRows) == 3 {
 				others := Cells{}
-				for _, cell := range cols[combo[0]] {
+				for _, cell := range b.cols[combo[0]] {
 					others = append(others, cell)
 				}
-				for _, cell := range cols[combo[1]] {
+				for _, cell := range b.cols[combo[1]] {
 					others = append(others, cell)
 				}
-				for _, cell := range cols[combo[2]] {
+				for _, cell := range b.cols[combo[2]] {
 					others = append(others, cell)
 				}
 				inRow := func(cell *Cell) bool {
@@ -738,7 +736,7 @@ func swordfish() bool {
 			}
 
 			matchedCols := []int{}
-			for i, col := range cols {
+			for i, col := range b.cols {
 				matchedCells := col.filterHasPossible(possible)
 				if len(matchedCells) == 3 &&
 					matchedCells[0].row == combo[0] &&
@@ -761,13 +759,13 @@ func swordfish() bool {
 			}
 			if len(matchedCols) == 3 {
 				others := Cells{}
-				for _, cell := range rows[combo[0]] {
+				for _, cell := range b.rows[combo[0]] {
 					others = append(others, cell)
 				}
-				for _, cell := range rows[combo[1]] {
+				for _, cell := range b.rows[combo[1]] {
 					others = append(others, cell)
 				}
-				for _, cell := range rows[combo[2]] {
+				for _, cell := range b.rows[combo[2]] {
 					others = append(others, cell)
 				}
 				inCol := func(cell *Cell) bool {
@@ -788,10 +786,10 @@ func swordfish() bool {
 // All pairs of possibles are grouped into chains. These are then coloured in alternate colours for odd/even.
 // Any cell that can see two different colours can be removed.
 // This includes cells in the chain but a cell cannot see itself.
-func simplecolouring() bool {
+func (b *Board) simplecolouring() bool {
 	for _, possible := range numbers {
 		pairs := []Cells{}
-		for _, block := range blocks {
+		for _, block := range b.blocks {
 			matches := block.filterHasPossible(possible)
 			if len(matches) == 2 {
 				pairs = append(pairs, matches)
@@ -802,7 +800,7 @@ func simplecolouring() bool {
 		}
 		chains := createChainsFrom(pairs)
 		for _, chain := range chains {
-			for _, row := range rows {
+			for _, row := range b.rows {
 				cells := row.filterHasPossible(possible)
 				for _, cell := range cells {
 					if cell.canSee(chain) == 3 {
@@ -859,39 +857,41 @@ func createChainsFrom(pairs []Cells) []Chain {
 }
 
 func solvePuzzle(puzzle string) (bool, string) {
+	var b = new(Board)
 	strategies := []func() bool{
-		singles,
-		nakeds,
-		hiddens,
-		pointingPairs,
-		boxLineReduction,
-		xwing,
-		swordfish,
-		simplecolouring,
+		b.singles,
+		b.nakeds,
+		b.hiddens,
+		b.pointingPairs,
+		b.boxLineReduction,
+		b.xwing,
+		b.swordfish,
+		b.simplecolouring,
 	}
-	parse(puzzle)
-	printb()
-	removeSolved()
-	if boardSolved() {
+	b.init()
+	b.parse(puzzle)
+	b.print()
+	b.removeSolved()
+	if b.solved() {
 		fmt.Println("Done !!!")
-		return true, solution()
+		return true, b.solution()
 	}
 	for {
 		found := false
 		for _, strategy := range strategies {
 			if strategy() {
 				found = true
-				if boardSolved() {
+				if b.solved() {
 					fmt.Println("Done !!!")
-					return true, solution()
+					return true, b.solution()
 				}
 			}
 			if found {
-				printb()
-				removeSolved()
-				if boardSolved() {
+				b.print()
+				b.removeSolved()
+				if b.solved() {
 					fmt.Println("Done !!!")
-					return true, solution()
+					return true, b.solution()
 				}
 				break
 			}
@@ -899,7 +899,7 @@ func solvePuzzle(puzzle string) (bool, string) {
 
 		if !found {
 			fmt.Println("Beats me !!!")
-			return false, solution()
+			return false, b.solution()
 		}
 	}
 }
