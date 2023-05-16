@@ -331,6 +331,18 @@ func (b *Board) init() {
 		b.cells[i] = Cell{possibles: numbers, row: row, col: col, box: box}
 	}
 
+	b.rows = [9]Cells{
+		{&b.cells[0], &b.cells[1], &b.cells[2], &b.cells[3], &b.cells[4], &b.cells[5], &b.cells[6], &b.cells[7], &b.cells[8]},
+		{&b.cells[9], &b.cells[10], &b.cells[11], &b.cells[12], &b.cells[13], &b.cells[14], &b.cells[15], &b.cells[16], &b.cells[17]},
+		{&b.cells[18], &b.cells[19], &b.cells[20], &b.cells[21], &b.cells[22], &b.cells[23], &b.cells[24], &b.cells[25], &b.cells[26]},
+		{&b.cells[27], &b.cells[28], &b.cells[29], &b.cells[30], &b.cells[31], &b.cells[32], &b.cells[33], &b.cells[34], &b.cells[35]},
+		{&b.cells[36], &b.cells[37], &b.cells[38], &b.cells[39], &b.cells[40], &b.cells[41], &b.cells[42], &b.cells[43], &b.cells[44]},
+		{&b.cells[45], &b.cells[46], &b.cells[47], &b.cells[48], &b.cells[49], &b.cells[50], &b.cells[51], &b.cells[52], &b.cells[53]},
+		{&b.cells[54], &b.cells[55], &b.cells[56], &b.cells[57], &b.cells[58], &b.cells[59], &b.cells[60], &b.cells[61], &b.cells[62]},
+		{&b.cells[63], &b.cells[64], &b.cells[65], &b.cells[66], &b.cells[67], &b.cells[68], &b.cells[69], &b.cells[70], &b.cells[71]},
+		{&b.cells[72], &b.cells[73], &b.cells[74], &b.cells[75], &b.cells[76], &b.cells[77], &b.cells[78], &b.cells[79], &b.cells[80]},
+	}
+
 	b.cols = [9]Cells{
 		{&b.cells[0], &b.cells[9], &b.cells[18], &b.cells[27], &b.cells[36], &b.cells[45], &b.cells[54], &b.cells[63], &b.cells[72]},
 		{&b.cells[1], &b.cells[10], &b.cells[19], &b.cells[28], &b.cells[37], &b.cells[46], &b.cells[55], &b.cells[64], &b.cells[73]},
