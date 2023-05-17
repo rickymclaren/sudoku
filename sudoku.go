@@ -23,6 +23,14 @@ import (
 	"strings"
 )
 
+//-------------------------------------------
+
+var numbers []string = strings.Split("123456789", "")
+var indexes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
+var combinations = combosOfString(numbers, 2)
+
+//-------------------------------------------
+
 // Cell is the basic building block of a sudoku.
 // If it has only one possible then it is solved.
 type Cell struct {
@@ -42,6 +50,14 @@ type Chain struct {
 	cell   *Cell
 	colour int
 	links  []Chain
+}
+
+type Board struct {
+	cells  [81]Cell
+	rows   [9]Cells
+	cols   [9]Cells
+	boxes  [9]Cells
+	blocks []Cells
 }
 
 // --- Methods of Cell ---
@@ -227,98 +243,6 @@ func (chain *Chain) findCell(cell *Cell) *Chain {
 		}
 	}
 	return nil
-}
-
-//------- General functions ----------
-
-func unique(values []string) []string {
-	result := make([]string, 0, 9)
-	m := make(map[string]bool)
-	for _, value := range values {
-		m[value] = true
-	}
-	for k := range m {
-		result = append(result, k)
-	}
-	sort.Strings(result)
-	return result
-}
-
-// Found on topcoder
-// Imagine all numbers from 0 to 2^len-1
-// The bit patterns of these numbers are the combinations
-func combosOfString(elems []string, min int) [][]string {
-	result := [][]string{}
-	n := len(elems)
-	for num := 0; num < (1 << uint(n)); num++ {
-		combination := make([]string, 0, 9)
-		for ndx := 0; ndx < n; ndx++ {
-			// (is the bit "on" in this number?)
-			if num&(1<<uint(ndx)) != 0 {
-				// (then add it to the combination)
-				combination = append(combination, elems[ndx])
-			}
-		}
-		if len(combination) >= min {
-			result = append(result, combination)
-		}
-	}
-	return result
-}
-
-func combosOfInt(elems []int, size int) [][]int {
-	result := [][]int{}
-	n := len(elems)
-	for num := 0; num < (1 << uint(n)); num++ {
-		combination := make([]int, 0, 9)
-		for ndx := 0; ndx < n; ndx++ {
-			// (is the bit "on" in this number?)
-			if num&(1<<uint(ndx)) != 0 {
-				// (then add it to the combination)
-				combination = append(combination, elems[ndx])
-			}
-		}
-		if len(combination) == size {
-			result = append(result, combination)
-		}
-	}
-	return result
-}
-
-func nameOfBlock(block int) string {
-	if block < 9 {
-		return fmt.Sprintf("Row %v", block+1)
-	} else if block < 18 {
-		return fmt.Sprintf("Col %v", block-9+1)
-	} else {
-		return fmt.Sprintf("Box %v", block-18+1)
-	}
-}
-
-func sliceOfStringsEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-//-------------------------------------------
-
-var numbers []string = strings.Split("123456789", "")
-var indexes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-var combinations = combosOfString(numbers, 2)
-
-type Board struct {
-	cells  [81]Cell
-	rows   [9]Cells
-	cols   [9]Cells
-	boxes  [9]Cells
-	blocks []Cells
 }
 
 // --- Methods of Board ---
@@ -825,6 +749,84 @@ func (b *Board) simplecolouring() bool {
 		}
 	}
 	return false
+}
+
+//------- General functions ----------
+
+func unique(values []string) []string {
+	result := make([]string, 0, 9)
+	m := make(map[string]bool)
+	for _, value := range values {
+		m[value] = true
+	}
+	for k := range m {
+		result = append(result, k)
+	}
+	sort.Strings(result)
+	return result
+}
+
+// Found on topcoder
+// Imagine all numbers from 0 to 2^len-1
+// The bit patterns of these numbers are the combinations
+func combosOfString(elems []string, min int) [][]string {
+	result := [][]string{}
+	n := len(elems)
+	for num := 0; num < (1 << uint(n)); num++ {
+		combination := make([]string, 0, 9)
+		for ndx := 0; ndx < n; ndx++ {
+			// (is the bit "on" in this number?)
+			if num&(1<<uint(ndx)) != 0 {
+				// (then add it to the combination)
+				combination = append(combination, elems[ndx])
+			}
+		}
+		if len(combination) >= min {
+			result = append(result, combination)
+		}
+	}
+	return result
+}
+
+func combosOfInt(elems []int, size int) [][]int {
+	result := [][]int{}
+	n := len(elems)
+	for num := 0; num < (1 << uint(n)); num++ {
+		combination := make([]int, 0, 9)
+		for ndx := 0; ndx < n; ndx++ {
+			// (is the bit "on" in this number?)
+			if num&(1<<uint(ndx)) != 0 {
+				// (then add it to the combination)
+				combination = append(combination, elems[ndx])
+			}
+		}
+		if len(combination) == size {
+			result = append(result, combination)
+		}
+	}
+	return result
+}
+
+func nameOfBlock(block int) string {
+	if block < 9 {
+		return fmt.Sprintf("Row %v", block+1)
+	} else if block < 18 {
+		return fmt.Sprintf("Col %v", block-9+1)
+	} else {
+		return fmt.Sprintf("Box %v", block-18+1)
+	}
+}
+
+func sliceOfStringsEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func createChainsFrom(pairs []Cells) []Chain {
