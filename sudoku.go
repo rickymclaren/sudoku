@@ -870,6 +870,8 @@ func createChainsFrom(pairs []Cells) []Chain {
 	return chains
 }
 
+// ---------------------------------------
+
 func solvePuzzle(puzzle string) (bool, string) {
 	var b = new(Board)
 	strategies := []func() bool{
