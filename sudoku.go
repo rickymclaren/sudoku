@@ -53,11 +53,12 @@ type Chain struct {
 }
 
 type Board struct {
-	cells  [81]Cell
-	rows   [9]Cells
-	cols   [9]Cells
-	boxes  [9]Cells
-	blocks []Cells
+	cells   [81]Cell
+	rows    [9]Cells
+	cols    [9]Cells
+	boxes   [9]Cells
+	blocks  []Cells
+	verbose bool
 }
 
 // --- Methods of Cell ---
@@ -304,7 +305,12 @@ func (b *Board) init() {
 func (b *Board) solution() string {
 	solution := ""
 	for _, cell := range b.cells {
-		solution += strings.Join(cell.possibles, "")
+		if len(cell.possibles) == 1 {
+			solution += strings.Join(cell.possibles, "")
+		} else {
+			solution = solution + "."
+		}
+
 	}
 	return solution
 }
@@ -336,7 +342,6 @@ func (b *Board) removeSolved() {
 		}
 	}
 	if removed {
-		fmt.Println("Removed Solved")
 		b.print()
 	}
 }
@@ -356,6 +361,10 @@ func (b *Board) parse(s string) {
 }
 
 func (b *Board) print() {
+	if !b.verbose {
+		return
+	}
+
 	fmt.Println()
 	for i := range b.cells {
 		if b.cells[i].solved() {
@@ -385,7 +394,9 @@ func (b *Board) singles() bool {
 		for _, possible := range numbers {
 			matches := cells.filterHasPossible(possible)
 			if len(matches) == 1 {
-				fmt.Printf("Single %s in %v\n", possible, nameOfBlock(index))
+				if b.verbose {
+					fmt.Printf("Single %s in %v\n", possible, nameOfBlock(index))
+				}
 				matches[0].solve(possible)
 				return true
 			}
@@ -423,7 +434,9 @@ func (b *Board) nakeds() bool {
 				others := block.filterExclude(inMatches)
 				found := others.remove(combo)
 				if found {
-					fmt.Printf("Naked %v found in %s\n", combo, nameOfBlock(index))
+					if b.verbose {
+						fmt.Printf("Naked %v found in %s\n", combo, nameOfBlock(index))
+					}
 					return true
 				}
 			}
@@ -450,7 +463,9 @@ func (b *Board) hiddens() bool {
 					}
 				}
 				if found {
-					fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
+					if b.verbose {
+						fmt.Printf("Hidden %v found in %s\n", combo, nameOfBlock(index))
+					}
 					return true
 				}
 			}
@@ -488,7 +503,9 @@ func (b *Board) pointingPairs() bool {
 				row := matches[0].row
 				others := b.rows[row].filterExclude(cellInBox)
 				if others.remove([]string{number}) {
-					fmt.Printf("Pointing pair: %v in box %v row %v\n", number, i+1, row+1)
+					if b.verbose {
+						fmt.Printf("Pointing pair: %v in box %v row %v\n", number, i+1, row+1)
+					}
 					return true
 				}
 			}
@@ -497,7 +514,9 @@ func (b *Board) pointingPairs() bool {
 				col := matches[0].col
 				others := b.cols[col].filterExclude(cellInBox)
 				if others.remove([]string{number}) {
-					fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, col+1)
+					if b.verbose {
+						fmt.Printf("Pointing pair: %v in box %v col %v\n", number, i+1, col+1)
+					}
 					return true
 				}
 			}
@@ -523,7 +542,9 @@ func (b *Board) boxLineReduction() bool {
 				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
 				others := b.boxes[box].filterExclude(cellInRow)
 				if others.remove([]string{number}) {
-					fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
+					if b.verbose {
+						fmt.Printf("Box Line Reduction: %v in box %v row %v\n", number, box+1, i+1)
+					}
 					return true
 				}
 
@@ -545,7 +566,9 @@ func (b *Board) boxLineReduction() bool {
 				(len(matches) == 3 && matches[1].box == box && matches[2].box == box) {
 				others := b.boxes[box].filterExclude(cellInCol)
 				if others.remove([]string{number}) {
-					fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
+					if b.verbose {
+						fmt.Printf("Box Line Reduction: %v in box %v col %v\n", number, box+1, i+1)
+					}
 					return true
 				}
 
@@ -585,7 +608,9 @@ func (b *Board) xwing() bool {
 				}
 				others = others.filterExclude(inRow)
 				if others.remove([]string{possible}) {
-					fmt.Printf("XWing %v in rows %v,%v cols %v,%v\n", possible, matchedRows[0]+1, matchedRows[1]+1, combo[0]+1, combo[1]+1)
+					if b.verbose {
+						fmt.Printf("XWing %v in rows %v,%v cols %v,%v\n", possible, matchedRows[0]+1, matchedRows[1]+1, combo[0]+1, combo[1]+1)
+					}
 					return true
 				}
 			}
@@ -612,7 +637,9 @@ func (b *Board) xwing() bool {
 				}
 				others = others.filterExclude(inCol)
 				if others.remove([]string{possible}) {
-					fmt.Printf("XWing %v in cols %v,%v rows %v,%v\n", possible, matchedCols[0]+1, matchedCols[1]+1, combo[0]+1, combo[1]+1)
+					if b.verbose {
+						fmt.Printf("XWing %v in cols %v,%v rows %v,%v\n", possible, matchedCols[0]+1, matchedCols[1]+1, combo[0]+1, combo[1]+1)
+					}
 					return true
 				}
 			}
@@ -665,8 +692,10 @@ func (b *Board) swordfish() bool {
 				}
 				others = others.filterExclude(inRow)
 				if others.remove([]string{possible}) {
-					fmt.Printf("Swordfish %v in rows %v,%v,%v cols %v,%v,%v\n", possible, matchedRows[0]+1, matchedRows[1]+1, matchedRows[2]+1,
-						combo[0]+1, combo[1]+1, combo[2]+1)
+					if b.verbose {
+						fmt.Printf("Swordfish %v in rows %v,%v,%v cols %v,%v,%v\n", possible, matchedRows[0]+1, matchedRows[1]+1, matchedRows[2]+1,
+							combo[0]+1, combo[1]+1, combo[2]+1)
+					}
 					return true
 				}
 			}
@@ -709,8 +738,10 @@ func (b *Board) swordfish() bool {
 				}
 				others = others.filterExclude(inCol)
 				if others.remove([]string{possible}) {
-					fmt.Printf("Swordfish %v in cols %v,%v,%v rows %v,%v,%v\n", possible, matchedCols[0]+1, matchedCols[1]+1, matchedCols[2]+1,
-						combo[0]+1, combo[1]+1, combo[2]+1)
+					if b.verbose {
+						fmt.Printf("Swordfish %v in cols %v,%v,%v rows %v,%v,%v\n", possible, matchedCols[0]+1, matchedCols[1]+1, matchedCols[2]+1,
+							combo[0]+1, combo[1]+1, combo[2]+1)
+					}
 					return true
 				}
 			}
@@ -740,7 +771,9 @@ func (b *Board) simplecolouring() bool {
 				cells := row.filterHasPossible(possible)
 				for _, cell := range cells {
 					if cell.canSee(chain) == 3 {
-						fmt.Printf("Simple Colouring %v: %v can see two colours in %v\n", possible, cell, chain)
+						if b.verbose {
+							fmt.Printf("Simple Colouring %v: %v can see two colours in %v\n", possible, cell, chain)
+						}
 						cell.removePossible(possible)
 						return true
 					}
@@ -889,7 +922,6 @@ func solvePuzzle(puzzle string) (bool, string) {
 	b.print()
 	b.removeSolved()
 	if b.solved() {
-		fmt.Println("Done !!!")
 		return true, b.solution()
 	}
 	for {
@@ -898,7 +930,6 @@ func solvePuzzle(puzzle string) (bool, string) {
 			if strategy() {
 				found = true
 				if b.solved() {
-					fmt.Println("Done !!!")
 					return true, b.solution()
 				}
 			}
@@ -906,7 +937,6 @@ func solvePuzzle(puzzle string) (bool, string) {
 				b.print()
 				b.removeSolved()
 				if b.solved() {
-					fmt.Println("Done !!!")
 					return true, b.solution()
 				}
 				break
@@ -914,7 +944,9 @@ func solvePuzzle(puzzle string) (bool, string) {
 		}
 
 		if !found {
-			fmt.Println("Beats me !!!")
+			if b.verbose {
+				fmt.Println("Beats me !!!")
+			}
 			return false, b.solution()
 		}
 	}
@@ -972,8 +1004,9 @@ func main() {
 	for index, puzzle := range puzzles {
 		total++
 		fmt.Printf("### Puzzle %v ###\n", total)
-		fmt.Printf(puzzle)
+		fmt.Printf("%s\n", puzzle)
 		solvedIt, solution := solvePuzzle(puzzle)
+		fmt.Printf("%s\n", solution)
 		if solvedIt {
 			status += "S"
 			solved++
