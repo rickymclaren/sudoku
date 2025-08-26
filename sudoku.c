@@ -124,7 +124,7 @@ int main(void) {
 
     for (;;) {
       if (singles(&b)) {
-        break;
+        continue;
       } else {
         printf("Beats me.\n");
         break;
