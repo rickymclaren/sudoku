@@ -58,6 +58,16 @@ void initialize_board(struct board *b, char *line) {
       if (ch >= '1' && ch <= '9') {
         solve(&b->cells[r][c], ch);
       }
+      b->rows[r][c] = &b->cells[r][c];
+      b->cols[c][r] = &b->cells[r][c];
+      b->boxes[r][c] = &b->cells[r][c];
+    }
+  }
+  for (int box = 0; box < 9; box++) {
+    for (int cell = 0; cell < 9; cell++) {
+      int r = (box / 3) * 3 + (cell / 3);
+      int c = (box % 3) * 3 + (cell % 3);
+      b->boxes[box][cell] = &b->cells[r][c];
     }
   }
 }
@@ -111,7 +121,7 @@ int main(void) {
   printf("Sudoku program started.\n");
 
   char buffer[100];
-  FILE *f = fopen("top95.txt", "r");
+  FILE *f = fopen("testeasy.txt", "r");
   if (f == NULL) {
     perror("Failed to open top95.txt");
     return 1;
@@ -120,6 +130,11 @@ int main(void) {
   char *line = fgets(buffer, sizeof(buffer), f);
   while (line != NULL) {
     printf("Read line: %s\n", line);
+    if (strlen(line) != 82) {
+      printf("Line not 81.\n");
+      line = fgets(buffer, sizeof(buffer), f);
+      continue;
+    }
     initialize_board(&b, line);
 
     for (;;) {

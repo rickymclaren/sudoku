@@ -2,14 +2,17 @@ typedef struct cell {
   int row;
   int col;
   int box;
-  char *values;
+  char* values;
 } Cell;
 
 typedef struct cell_list {
-  Cell *cell[9];
+  Cell* cell[9];
   int count;
 } CellList;
 
 typedef struct board {
   Cell cells[9][9];
+  Cell* rows[9][9];
+  Cell* cols[9][9];
+  Cell* boxes[9][9];
 } Board;
