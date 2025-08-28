@@ -11,7 +11,7 @@ typedef struct cell_list {
 } CellList;
 
 typedef struct board {
-  Cell cells[9][9];
+  Cell cells[81];
   Cell* rows[9][9];
   Cell* cols[9][9];
   Cell* boxes[9][9];
