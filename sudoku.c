@@ -182,9 +182,12 @@ int naked_pairs(Board *board) {
       pair[2] = '\0';
 
       // Check rows for naked pairs
-      naked = createArrayList(9);
-      others = createArrayList(9);
       for (int row = 0; row < 9; row++) {
+        if (strcmp(pair, "12") == 0 && row == 3) {
+          int debug = 1;
+        }
+        naked = createArrayList(9);
+        others = createArrayList(9);
         for (int i = 0; i < 9; i++) {
           if (solved(board->rows[row][i])) {
             continue;
@@ -212,11 +215,14 @@ int naked_pairs(Board *board) {
       }
 
       // Check columns for naked pairs
-      naked = createArrayList(9);
-      others = createArrayList(9);
       for (int col = 0; col < 9; col++) {
+        if (strcmp(pair, "12") == 0 && col == 3) {
+          int debug = 1;
+        }
+        naked = createArrayList(9);
+        others = createArrayList(9);
         for (int i = 0; i < 9; i++) {
-          if (solved(board->rows[col][i])) {
+          if (solved(board->cols[col][i])) {
             continue;
           }
           if (has_others(board->cols[col][i], pair)) {
@@ -232,7 +238,7 @@ int naked_pairs(Board *board) {
             removed |= removeChar(cell->values, a);
             removed |= removeChar(cell->values, b);
           }
-          printf("Found naked pair at row %d for %c%c\n", col + 1, a, b);
+          printf("Found naked pair at col %d for %c%c\n", col + 1, a, b);
           freeArrayList(naked);
           freeArrayList(others);
           if (removed) {
@@ -242,9 +248,9 @@ int naked_pairs(Board *board) {
       }
 
       // Check boxes for naked pairs
-      naked = createArrayList(9);
-      others = createArrayList(9);
       for (int box = 0; box < 9; box++) {
+        naked = createArrayList(9);
+        others = createArrayList(9);
         for (int i = 0; i < 9; i++) {
           if (solved(board->boxes[box][i])) {
             continue;
@@ -262,7 +268,7 @@ int naked_pairs(Board *board) {
             removed |= removeChar(cell->values, a);
             removed |= removeChar(cell->values, b);
           }
-          printf("Found naked pair at row %d for %c%c\n", box + 1, a, b);
+          printf("Found naked pair at box %d for %c%c\n", box + 1, a, b);
           freeArrayList(naked);
           freeArrayList(others);
           if (removed) {
@@ -294,9 +300,12 @@ int naked_triples(Board *board) {
         triple[3] = '\0';
 
         // Check rows for naked triples
-        naked = createArrayList(9);
-        others = createArrayList(9);
         for (int row = 0; row < 9; row++) {
+          naked = createArrayList(9);
+          others = createArrayList(9);
+          if ((strcmp(triple, "125") == 0) && (row == 5)) {
+            debug = 1;
+          }
           for (int i = 0; i < 9; i++) {
             if (solved(board->rows[row][i])) {
               continue;
@@ -326,9 +335,9 @@ int naked_triples(Board *board) {
         }
 
         // Check columns for naked triples
-        naked = createArrayList(9);
-        others = createArrayList(9);
         for (int col = 0; col < 9; col++) {
+          naked = createArrayList(9);
+          others = createArrayList(9);
           if ((strcmp(triple, "125") == 0) && (col == 4)) {
             debug = 1;
           }
@@ -361,9 +370,9 @@ int naked_triples(Board *board) {
         }
 
         // Check boxes for naked triples
-        naked = createArrayList(9);
-        others = createArrayList(9);
         for (int box = 0; box < 9; box++) {
+          naked = createArrayList(9);
+          others = createArrayList(9);
           for (int i = 0; i < 9; i++) {
             if (solved(board->boxes[box][i])) {
               continue;
