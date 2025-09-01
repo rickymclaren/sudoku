@@ -205,10 +205,10 @@ int naked_pairs(Board *board) {
             removed |= removeChar(cell->values, a);
             removed |= removeChar(cell->values, b);
           }
-          printf("Found naked pair at row %d for %c%c\n", row + 1, a, b);
           freeArrayList(naked);
           freeArrayList(others);
           if (removed) {
+            printf("Found naked pair at row %d for %c%c\n", row + 1, a, b);
             return TRUE;
           }
         }
@@ -238,10 +238,10 @@ int naked_pairs(Board *board) {
             removed |= removeChar(cell->values, a);
             removed |= removeChar(cell->values, b);
           }
-          printf("Found naked pair at col %d for %c%c\n", col + 1, a, b);
           freeArrayList(naked);
           freeArrayList(others);
           if (removed) {
+            printf("Found naked pair at col %d for %c%c\n", col + 1, a, b);
             return TRUE;
           }
         }
@@ -268,10 +268,10 @@ int naked_pairs(Board *board) {
             removed |= removeChar(cell->values, a);
             removed |= removeChar(cell->values, b);
           }
-          printf("Found naked pair at box %d for %c%c\n", box + 1, a, b);
           freeArrayList(naked);
           freeArrayList(others);
           if (removed) {
+            printf("Found naked pair at box %d for %c%c\n", box + 1, a, b);
             return TRUE;
           }
         }
@@ -324,11 +324,11 @@ int naked_triples(Board *board) {
               removed |= removeChar(cell->values, b);
               removed |= removeChar(cell->values, c);
             }
-            printf("Found naked triple at row %d for %c%c%c\n", row + 1, a, b,
-                   c);
             freeArrayList(naked);
             freeArrayList(others);
             if (removed) {
+              printf("Found naked triple at row %d for %c%c%c\n", row + 1, a, b,
+                     c);
               return TRUE;
             }
           }
@@ -359,11 +359,11 @@ int naked_triples(Board *board) {
               removed |= removeChar(cell->values, b);
               removed |= removeChar(cell->values, c);
             }
-            printf("Found naked triple at col %d for %c%c%c\n", col + 1, a, b,
-                   c);
             freeArrayList(naked);
             freeArrayList(others);
             if (removed) {
+              printf("Found naked triple at col %d for %c%c%c\n", col + 1, a, b,
+                     c);
               return TRUE;
             }
           }
@@ -391,11 +391,11 @@ int naked_triples(Board *board) {
               removed |= removeChar(cell->values, b);
               removed |= removeChar(cell->values, c);
             }
-            printf("Found naked triple at box %d for %c%c%c\n", box + 1, a, b,
-                   c);
             freeArrayList(naked);
             freeArrayList(others);
             if (removed) {
+              printf("Found naked triple at box %d for %c%c%c\n", box + 1, a, b,
+                     c);
               return TRUE;
             }
           }
