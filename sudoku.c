@@ -198,7 +198,7 @@ int naked_pairs(Board *board) {
             add(naked, board->rows[row][i]);
           }
         }
-        if (naked->size == 3) {
+        if (naked->size == 2) {
           int removed = FALSE;
           for (int i = 0; i < others->size; i++) {
             Cell *cell = get(others, i);
@@ -231,7 +231,7 @@ int naked_pairs(Board *board) {
             add(naked, board->cols[col][i]);
           }
         }
-        if (naked->size == 3) {
+        if (naked->size == 2) {
           int removed = FALSE;
           for (int i = 0; i < others->size; i++) {
             Cell *cell = get(others, i);
@@ -261,7 +261,7 @@ int naked_pairs(Board *board) {
             add(naked, board->boxes[box][i]);
           }
         }
-        if (naked->size == 3) {
+        if (naked->size == 2) {
           int removed = FALSE;
           for (int i = 0; i < others->size; i++) {
             Cell *cell = get(others, i);
