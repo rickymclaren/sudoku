@@ -103,6 +103,17 @@ void remove_solved(Board *b) {
   }
 }
 
+int remove_from_cells_outside_box(Cell *cells[9], int box, char ch) {
+  int removed = FALSE;
+  for (int i = 0; i < 9; i++) {
+    Cell *cell = cells[i];
+    if (cell->box != box && !solved(cell)) {
+      removed |= removeChar(cell->values, ch);
+    }
+  }
+  return removed;
+}
+
 /*
 
 */
@@ -406,6 +417,52 @@ int naked_triples(Board *board) {
   return FALSE;
 }
 
+/*
+ * Look for triples of cells in a row, column, or box that only contain the
+ * same three values. If found, these values can be removed from all other cells
+ */
+int pointing_pairs(Board *board) {
+  int debug = 0;
+
+  for (char ch = '1'; ch <= '9'; ch++) {
+    for (int box = 0; box < 9; box++) {
+      if ((ch == '3') && (box == 5)) {
+        debug = 1;
+      }
+      ArrayList *pair = createArrayList(9);
+      for (int i = 0; i < 9; i++) {
+        if (has(board->boxes[box][i], ch)) {
+          add(pair, board->boxes[box][i]);
+        }
+      }
+      if (pair->size == 2) {
+        Cell *c1 = get(pair, 0);
+        Cell *c2 = get(pair, 1);
+        if (c1->row == c2->row) {
+          // Both in same row, remove from other cells in that row outside box
+          if (remove_from_cells_outside_box(board->rows[c1->row], box, ch)) {
+            printf("Found pointing pair at box %d for %c in row %d\n", box + 1,
+                   ch, c1->row + 1);
+            freeArrayList(pair);
+            return TRUE;
+          }
+        }
+        if (c1->col == c2->col) {
+          // Both in same col, remove from other cells in that col outside box
+          if (remove_from_cells_outside_box(board->rows[c1->col], box, ch)) {
+            printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
+                   ch, c1->col + 1);
+            freeArrayList(pair);
+            return TRUE;
+          }
+        }
+      }
+    }
+  }
+
+  return FALSE;
+}
+
 void print_board(Board *b) {
   printf("\n");
   for (int i = 0; i < 81; i++) {
@@ -461,6 +518,8 @@ int main(void) {
       if (naked_pairs(&b)) {
         continue;
       } else if (naked_triples(&b)) {
+        continue;
+      } else if (pointing_pairs(&b)) {
         continue;
       } else {
         printf("Beats me.\n");
