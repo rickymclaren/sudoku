@@ -449,7 +449,7 @@ int pointing_pairs(Board *board) {
         }
         if (c1->col == c2->col) {
           // Both in same col, remove from other cells in that col outside box
-          if (remove_from_cells_outside_box(board->rows[c1->col], box, ch)) {
+          if (remove_from_cells_outside_box(board->cols[c1->col], box, ch)) {
             printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
                    ch, c1->col + 1);
             freeArrayList(pair);
