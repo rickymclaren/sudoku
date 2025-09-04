@@ -462,6 +462,29 @@ int pointing_pairs(Board *board) {
           }
         }
       }
+      if (pair->size == 3) {
+        Cell *c1 = get(pair, 0);
+        Cell *c2 = get(pair, 1);
+        Cell *c3 = get(pair, 2);
+        if (c1->row == c2->row && c1->row == c3->row) {
+          // All in same row, remove from other cells in that row outside box
+          if (remove_from_cells_outside_box(board->rows[c1->row], box, ch)) {
+            printf("Found pointing pair at box %d for %c in row %d\n", box + 1,
+                   ch, c1->row + 1);
+            freeArrayList(pair);
+            return TRUE;
+          }
+        }
+        if (c1->col == c2->col && c1->col == c3->col) {
+          // All in same col, remove from other cells in that col outside box
+          if (remove_from_cells_outside_box(board->cols[c1->col], box, ch)) {
+            printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
+                   ch, c1->col + 1);
+            freeArrayList(pair);
+            return TRUE;
+          }
+        }
+      }
     }
   }
 
@@ -517,7 +540,7 @@ int main(void) {
     initialize_board(&b, line);
 
     for (;;) {
-      sleep(2);
+      sleep(1);
       remove_solved(&b);
       print_board(&b);
       if (board_solved(&b)) {
