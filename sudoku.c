@@ -20,6 +20,15 @@ void solve(Cell *cell, char c) {
 
 int solved(Cell *cell) { return strlen(cell->values) == 1; }
 
+int board_solved(Board *b) {
+  for (int i = 0; i < 81; i++) {
+    if (!solved(&b->cells[i])) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
 int has(Cell *cell, char c) {
   if (solved(cell)) {
     return FALSE;
@@ -79,23 +88,19 @@ void initialize_board(struct board *b, char *line) {
 }
 
 void remove_solved(Board *b) {
-  for (int r = 0; r < 9; r++) {
-    for (int c = 0; c < 9; c++) {
-      Cell *cell = &b->cells[r * 9 + c];
+  int removed = TRUE;
+  while (removed) {
+    removed = FALSE;
+    for (int i = 0; i < 81; i++) {
+      Cell *cell = &b->cells[i];
       if (solved(cell)) {
-        char solved_value = cell->values[0];
-        for (int i = 0; i < 9; i++) {
-          Cell *row_cell = b->rows[r][i];
-          if (can_see(cell, row_cell)) {
-            removeChar(row_cell->values, solved_value);
-          }
-          Cell *col_cell = b->cols[c][i];
-          if (can_see(cell, col_cell)) {
-            removeChar(col_cell->values, solved_value);
-          }
-          Cell *box_cell = b->boxes[cell->box][i];
-          if (can_see(cell, box_cell)) {
-            removeChar(box_cell->values, solved_value);
+        char ch = cell->values[0];
+        for (int j = 0; j < 81; j++) {
+          Cell *other = &b->cells[j];
+          if (can_see(cell, other) && !solved(other)) {
+            if (removeChar(other->values, ch)) {
+              removed = TRUE;
+            }
           }
         }
       }
@@ -122,15 +127,15 @@ int singles(Board *b) {
     for (int row = 0; row < 9; row++) {
       ArrayList *list = createArrayList(9);
       for (int i = 0; i < 9; i++) {
-        Cell **cell = &b->rows[row][i];
-        if (has(*cell, c)) {
+        Cell *cell = b->rows[row][i];
+        if (has(cell, c)) {
           add(list, cell);
         }
       }
       if (list->size == 1) {
         printf("Found single at row %d for %c\n", row + 1, c);
-        Cell **only = get(list, 0);
-        solve(*only, c);
+        Cell *only = get(list, 0);
+        solve(only, c);
         freeArrayList(list);
         return TRUE;
       }
@@ -140,8 +145,8 @@ int singles(Board *b) {
     for (int col = 0; col < 9; col++) {
       ArrayList *list = createArrayList(9);
       for (int i = 0; i < 9; i++) {
-        Cell **cell = &b->cols[col][i];
-        if (has(*cell, c)) {
+        Cell *cell = b->cols[col][i];
+        if (has(cell, c)) {
           add(list, cell);
         }
       }
@@ -158,8 +163,8 @@ int singles(Board *b) {
     for (int box = 0; box < 9; box++) {
       ArrayList *list = createArrayList(9);
       for (int i = 0; i < 9; i++) {
-        Cell **cell = &b->boxes[box][i];
-        if (has(*cell, c)) {
+        Cell *cell = b->boxes[box][i];
+        if (has(cell, c)) {
           add(list, cell);
         }
       }
@@ -515,7 +520,13 @@ int main(void) {
       sleep(2);
       remove_solved(&b);
       print_board(&b);
-      if (naked_pairs(&b)) {
+      if (board_solved(&b)) {
+        printf("Board solved!\n");
+        break;
+      }
+      if (singles(&b)) {
+        continue;
+      } else if (naked_pairs(&b)) {
         continue;
       } else if (naked_triples(&b)) {
         continue;
