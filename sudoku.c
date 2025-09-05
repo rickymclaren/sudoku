@@ -62,6 +62,34 @@ int can_see(Cell *a, Cell *b) {
   return (a->row == b->row) || (a->col == b->col) || (a->box == b->box);
 }
 
+int same_row(ArrayList *cells) {
+  if (cells->size == 0) {
+    return FALSE;
+  }
+  Cell *first = get(cells, 0);
+  for (int i = 1; i < cells->size; i++) {
+    Cell *other = get(cells, i);
+    if (other->row != first->row) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
+int same_col(ArrayList *cells) {
+  if (cells->size == 0) {
+    return FALSE;
+  }
+  Cell *first = get(cells, 0);
+  for (int i = 1; i < cells->size; i++) {
+    Cell *other = get(cells, i);
+    if (other->col != first->col) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
 void initialize_board(struct board *b, char *line) {
   for (int r = 0; r < 9; r++) {
     for (int c = 0; c < 9; c++) {
@@ -440,51 +468,29 @@ int pointing_pairs(Board *board) {
           add(pair, board->boxes[box][i]);
         }
       }
-      if (pair->size == 2) {
-        Cell *c1 = get(pair, 0);
-        Cell *c2 = get(pair, 1);
-        if (c1->row == c2->row) {
+      if (pair->size == 2 || pair->size == 3) {
+        if (same_row(pair)) {
+          Cell *first = get(pair, 0);
           // Both in same row, remove from other cells in that row outside box
-          if (remove_from_cells_outside_box(board->rows[c1->row], box, ch)) {
+          if (remove_from_cells_outside_box(board->rows[first->row], box, ch)) {
             printf("Found pointing pair at box %d for %c in row %d\n", box + 1,
-                   ch, c1->row + 1);
+                   ch, first->row + 1);
             freeArrayList(pair);
             return TRUE;
           }
         }
-        if (c1->col == c2->col) {
-          // Both in same col, remove from other cells in that col outside box
-          if (remove_from_cells_outside_box(board->cols[c1->col], box, ch)) {
+        if (same_col(pair)) {
+          Cell *first = get(pair, 0);
+          // Both in same row, remove from other cells in that row outside box
+          if (remove_from_cells_outside_box(board->cols[first->col], box, ch)) {
             printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
-                   ch, c1->col + 1);
+                   ch, first->col + 1);
             freeArrayList(pair);
             return TRUE;
           }
         }
       }
-      if (pair->size == 3) {
-        Cell *c1 = get(pair, 0);
-        Cell *c2 = get(pair, 1);
-        Cell *c3 = get(pair, 2);
-        if (c1->row == c2->row && c1->row == c3->row) {
-          // All in same row, remove from other cells in that row outside box
-          if (remove_from_cells_outside_box(board->rows[c1->row], box, ch)) {
-            printf("Found pointing pair at box %d for %c in row %d\n", box + 1,
-                   ch, c1->row + 1);
-            freeArrayList(pair);
-            return TRUE;
-          }
-        }
-        if (c1->col == c2->col && c1->col == c3->col) {
-          // All in same col, remove from other cells in that col outside box
-          if (remove_from_cells_outside_box(board->cols[c1->col], box, ch)) {
-            printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
-                   ch, c1->col + 1);
-            freeArrayList(pair);
-            return TRUE;
-          }
-        }
-      }
+      freeArrayList(pair);
     }
   }
 
