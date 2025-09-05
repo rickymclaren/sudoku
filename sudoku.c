@@ -90,6 +90,20 @@ int same_col(ArrayList *cells) {
   return TRUE;
 }
 
+int same_box(ArrayList *cells) {
+  if (cells->size == 0) {
+    return FALSE;
+  }
+  Cell *first = get(cells, 0);
+  for (int i = 1; i < cells->size; i++) {
+    Cell *other = get(cells, i);
+    if (other->box != first->box) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
 void initialize_board(struct board *b, char *line) {
   for (int r = 0; r < 9; r++) {
     for (int c = 0; c < 9; c++) {
@@ -134,6 +148,28 @@ void remove_solved(Board *b) {
       }
     }
   }
+}
+
+int remove_from_cells_outside_row(Cell *cells[9], int row, char ch) {
+  int removed = FALSE;
+  for (int i = 0; i < 9; i++) {
+    Cell *cell = cells[i];
+    if (cell->row != row && !solved(cell)) {
+      removed |= removeChar(cell->values, ch);
+    }
+  }
+  return removed;
+}
+
+int remove_from_cells_outside_col(Cell *cells[9], int col, char ch) {
+  int removed = FALSE;
+  for (int i = 0; i < 9; i++) {
+    Cell *cell = cells[i];
+    if (cell->col != col && !solved(cell)) {
+      removed |= removeChar(cell->values, ch);
+    }
+  }
+  return removed;
 }
 
 int remove_from_cells_outside_box(Cell *cells[9], int box, char ch) {
@@ -227,9 +263,6 @@ int naked_pairs(Board *board) {
 
       // Check rows for naked pairs
       for (int row = 0; row < 9; row++) {
-        if (strcmp(pair, "12") == 0 && row == 3) {
-          int debug = 1;
-        }
         naked = createArrayList(9);
         others = createArrayList(9);
         for (int i = 0; i < 9; i++) {
@@ -260,9 +293,6 @@ int naked_pairs(Board *board) {
 
       // Check columns for naked pairs
       for (int col = 0; col < 9; col++) {
-        if (strcmp(pair, "12") == 0 && col == 3) {
-          int debug = 1;
-        }
         naked = createArrayList(9);
         others = createArrayList(9);
         for (int i = 0; i < 9; i++) {
@@ -332,7 +362,6 @@ int naked_pairs(Board *board) {
 int naked_triples(Board *board) {
   ArrayList *naked;
   ArrayList *others;
-  int debug = 0;
 
   for (char a = '1'; a <= '9'; a++) {
     for (char b = a + 1; b <= '9'; b++) {
@@ -347,9 +376,6 @@ int naked_triples(Board *board) {
         for (int row = 0; row < 9; row++) {
           naked = createArrayList(9);
           others = createArrayList(9);
-          if ((strcmp(triple, "125") == 0) && (row == 5)) {
-            debug = 1;
-          }
           for (int i = 0; i < 9; i++) {
             if (solved(board->rows[row][i])) {
               continue;
@@ -382,9 +408,6 @@ int naked_triples(Board *board) {
         for (int col = 0; col < 9; col++) {
           naked = createArrayList(9);
           others = createArrayList(9);
-          if ((strcmp(triple, "125") == 0) && (col == 4)) {
-            debug = 1;
-          }
           for (int i = 0; i < 9; i++) {
             if (solved(board->cols[col][i])) {
               continue;
@@ -455,42 +478,75 @@ int naked_triples(Board *board) {
  * same three values. If found, these values can be removed from all other cells
  */
 int pointing_pairs(Board *board) {
-  int debug = 0;
-
   for (char ch = '1'; ch <= '9'; ch++) {
     for (int box = 0; box < 9; box++) {
-      if ((ch == '3') && (box == 5)) {
-        debug = 1;
-      }
       ArrayList *pair = createArrayList(9);
       for (int i = 0; i < 9; i++) {
         if (has(board->boxes[box][i], ch)) {
           add(pair, board->boxes[box][i]);
         }
       }
-      if (pair->size == 2 || pair->size == 3) {
-        if (same_row(pair)) {
-          Cell *first = get(pair, 0);
-          // Both in same row, remove from other cells in that row outside box
-          if (remove_from_cells_outside_box(board->rows[first->row], box, ch)) {
-            printf("Found pointing pair at box %d for %c in row %d\n", box + 1,
-                   ch, first->row + 1);
-            freeArrayList(pair);
-            return TRUE;
-          }
+      if (same_row(pair)) {
+        Cell *first = get(pair, 0);
+        if (remove_from_cells_outside_box(board->rows[first->row], box, ch)) {
+          printf("Found pointing pair at box %d for %c in row %d\n", box + 1,
+                 ch, first->row + 1);
+          freeArrayList(pair);
+          return TRUE;
         }
-        if (same_col(pair)) {
-          Cell *first = get(pair, 0);
-          // Both in same row, remove from other cells in that row outside box
-          if (remove_from_cells_outside_box(board->cols[first->col], box, ch)) {
-            printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
-                   ch, first->col + 1);
-            freeArrayList(pair);
-            return TRUE;
-          }
+      }
+      if (same_col(pair)) {
+        Cell *first = get(pair, 0);
+        if (remove_from_cells_outside_box(board->cols[first->col], box, ch)) {
+          printf("Found pointing pair at box %d for %c in col %d\n", box + 1,
+                 ch, first->col + 1);
+          freeArrayList(pair);
+          return TRUE;
         }
       }
       freeArrayList(pair);
+    }
+  }
+
+  return FALSE;
+}
+
+int box_line_reduction(Board *board) {
+  for (char ch = '1'; ch <= '9'; ch++) {
+    for (int row = 0; row < 9; row++) {
+      ArrayList *list = createArrayList(9);
+      for (int i = 0; i < 9; i++) {
+        if (has(board->rows[row][i], ch)) {
+          add(list, board->rows[row][i]);
+        }
+      }
+      if (same_box(list)) {
+        Cell *first = get(list, 0);
+        if (remove_from_cells_outside_row(board->rows[first->row], row, ch)) {
+          printf("Found BLR at for %c in row %d\n", ch, first->row + 1);
+          freeArrayList(list);
+          return TRUE;
+        }
+      }
+      freeArrayList(list);
+    }
+
+    for (int col = 0; col < 9; col++) {
+      ArrayList *list = createArrayList(9);
+      for (int i = 0; i < 9; i++) {
+        if (has(board->cols[col][i], ch)) {
+          add(list, board->cols[col][i]);
+        }
+      }
+      if (same_box(list)) {
+        Cell *first = get(list, 0);
+        if (remove_from_cells_outside_col(board->cols[first->col], col, ch)) {
+          printf("Found BLR at for %c in col %d\n", ch, first->col + 1);
+          freeArrayList(list);
+          return TRUE;
+        }
+      }
+      freeArrayList(list);
     }
   }
 
@@ -529,7 +585,7 @@ int main(void) {
   printf("Sudoku program started.\n");
 
   char buffer[100];
-  FILE *f = fopen("testeasy.txt", "r");
+  FILE *f = fopen("top95.txt", "r");
   if (f == NULL) {
     perror("Failed to open top95.txt");
     return 1;
@@ -546,7 +602,7 @@ int main(void) {
     initialize_board(&b, line);
 
     for (;;) {
-      sleep(1);
+      // sleep(1);
       remove_solved(&b);
       print_board(&b);
       if (board_solved(&b)) {
@@ -560,6 +616,8 @@ int main(void) {
       } else if (naked_triples(&b)) {
         continue;
       } else if (pointing_pairs(&b)) {
+        continue;
+      } else if (box_line_reduction(&b)) {
         continue;
       } else {
         printf("Beats me.\n");
