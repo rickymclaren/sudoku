@@ -522,8 +522,8 @@ int box_line_reduction(Board *board) {
       }
       if (same_box(list)) {
         Cell *first = get(list, 0);
-        if (remove_from_cells_outside_row(board->rows[first->row], row, ch)) {
-          printf("Found BLR at for %c in row %d\n", ch, first->row + 1);
+        if (remove_from_cells_outside_row(board->boxes[first->box], row, ch)) {
+          printf("Found BLR at for %c in row %d\n", ch, row + 1);
           freeArrayList(list);
           return TRUE;
         }
@@ -540,8 +540,8 @@ int box_line_reduction(Board *board) {
       }
       if (same_box(list)) {
         Cell *first = get(list, 0);
-        if (remove_from_cells_outside_col(board->cols[first->col], col, ch)) {
-          printf("Found BLR at for %c in col %d\n", ch, first->col + 1);
+        if (remove_from_cells_outside_col(board->boxes[first->box], col, ch)) {
+          printf("Found BLR at for %c in col %d\n", ch, col + 1);
           freeArrayList(list);
           return TRUE;
         }
