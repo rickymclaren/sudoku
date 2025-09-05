@@ -582,6 +582,9 @@ void print_board(Board *b) {
 
 int main(void) {
   Board b;
+  int solved = 0;
+  int not_solved = 0;
+
   printf("Sudoku program started.\n");
 
   char buffer[100];
@@ -607,6 +610,7 @@ int main(void) {
       print_board(&b);
       if (board_solved(&b)) {
         printf("Board solved!\n");
+        solved++;
         break;
       }
       if (singles(&b)) {
@@ -621,6 +625,7 @@ int main(void) {
         continue;
       } else {
         printf("Beats me.\n");
+        not_solved++;
         break;
       }
     }
@@ -629,6 +634,8 @@ int main(void) {
   }
 
   fclose(f);
+
+  printf("Solved %d, not solved %d\n", solved, not_solved);
 
   return 0;
 }
